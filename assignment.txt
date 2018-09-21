@@ -1,0 +1,30 @@
+Welcome to VexU! Congratulations for figuring out how to clone the repo :) 
+
+Here are some more git instructions for you guys to keep in mind:
+git branch
+git checkout
+git checkout -b
+git add [-u]
+git commit [-m]
+git remote -v
+git push origin <branchName>
+git log
+
+The first assignment for you is a calculator program in c++
+I would like you to implmement the following functions:
+add()
+subtract()
+multiply()
+divide()
+square()
+sqrt()
+
+Don't forget the main function! 
+
+User interface is allowed to be stdin/stdout, as long as you are comfortable with the synax.
+
+When you are finished, push to a new branch and modify the README to include your name and berkeley email address.
+
+Happy coding!
+
+Eric 
