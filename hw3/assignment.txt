@@ -1,0 +1,24 @@
+This should be fun!
+
+At the meeting I should have given you guys all the electronics necessary.
+
+Your task is to code a simple motor control loop using the arduino, motor, bluetooth module, and ultrasonic sensor module.
+
+1) Setup: The board you're using is the elegoo arduino nano v3. This is not an arduino brand arduino, so you'll have to download the driver for it. I have included the zip files for windows in the github. Make sure you unzip the folders corresponding to the "CH340" chipset. After unzipping, follow the README instructions to install.
+
+2) Setup: Download the arduino IDE. After installation, go to tools and set the board to "Arduino Nano" and make sure the processor is "ATmega328P (Old Bootloader)". Finally, make sure the port is /dev/cu.wchusbserisl1420. Now you're ready to go!
+
+3) Make the motor spin. I have included a sample file of the code that runs the motor in one second pulses. You will have to wire the motor to the proper pins in order for the motor to spin.
+
+4) Hook up the bluetooth module. The module is an HC-06 bluetooth module, and you can find the spec for this online. You will need to communicate with it using some sort of terminal tool (I like to use Putty), and make sure you can send and receive bluetooth signals.
+
+5) Hook up the ultrasonic sensor. The model is HC-SR04. There are multiple libraries available for this, but I like to use the one here: https://playground.arduino.cc/Code/NewPing
+It is robust and can support many ultrasonic sensor chips.
+
+6) Putting everything together. This project is very open ended, but you will have to meet the following design goals:
+- The motor should spin if you send some signal to the arduino via bluetooth. The motor should stop if you send a different signal to the arduino. You should also write a script that sends a "heartbeat" message to the bluetooth module; the heartbeat is necessary to keep the motor running if it is.
+- If the motor does not receive a heartbeat for more than 2 seconds, it should automatically turn off. The bluetooth module should then send some sort of "loss of signal" message to the computer. 
+- If the ultrasonic sensor encounters an object closer than 1 meter to the sensor, it should automatically stop the motor.
+- Finally, the arduino has a built in LED. Whenever the motor is spinning the LED should be solid. If the motor is not spinning, the LED needs to be off. If there is a loss of signal, the LED should blink in half-second intervals.
+
+Have fun!
