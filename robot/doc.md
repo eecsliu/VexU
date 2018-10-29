@@ -1,6 +1,4 @@
-Forwards for autonomous + manual
-Turning In place for autonomous + manual
-Turning while moving for autonomous + manual
+# Pseudocode
 
 Function for forward autonomous
 
@@ -23,7 +21,7 @@ Function for manual controls
 
 ```pseudocode
 def control():
-    linearPower = controller.right_trigger()
+    linearPower = controller.right_trigger() - controller.left_trigger()
     angularPower = controller.axis_1_value() * SENSITIVITY_CONSTANT
     rightPwm = leftPwm = linearPower
     leftPwm -= angularPower
@@ -57,8 +55,46 @@ def turnMovement(xCoord, yCoord, rotation):
 	turninplaceAutonomous(rotation - finalRotation)
 ```
 
+Function for lifting
+```pseudocode
+lift_motors = [motors]
+def liftArm(height):
+	if height == LOW_HEIGHT:
+		liftHelperFunction(low_switch, direction::fwd)
+	else:
+		liftHelperFunction(high_switch, direction::fwd)
+def resetArm():
+	liftHelperFunction(reset_switch, direction::backward)
+def liftHelperFunction(switch, direction):
+	while(not switch.is_pressed()):
+		for motor in lift_motors:
+			motor.spin(direction, 50)
+```
+
+Functions for intake toggle
+
+```pseudocode
+def toggle_slow():
+	if not motor.isSpinning() or not motor.velocity == SLOW_SPEED
+		motor.spin(directionType::fwd, SLOW_SPEED)
+	else:
+		motor.stop()
+
+def toggle_fast():
+	if not motor.isSpinning() or not motor.velocity == FAST_SPEED
+		motor.spin(directionType::fwd, FAST_SPEED)
+	else:
+		motor.stop()
+```
+
+
+
+
+
+
+
 API for motor actions
-​	Motor.spin(directionType::fwd,50,velocityUnits::rpm);
+​    Motor.spin(directionType::fwd,50,velocityUnits::rpm);
 ​    Motor.rotateTo(90,rotationUnits::deg,50,velocityUnits::pct);
 ​    Motor.rotateFor(90,rotationUnits::deg,50,velocityUnits::pct);
 ​    Motor.rotateFor(2.5,timeUnits::sec,50,velocityUnits::pct);
@@ -74,3 +110,113 @@ API for motor sensing
 ​    Motor.torque(torqueUnits::Nm);
 ​    Motor.efficiency(percentUnits::pct);
 ​    Motor.temperature(percentUnits::pct);
+
+# Notes from design review:
+
+Cascade lift works by spinning motors that pull chains that lift up
+
+* Left to right around 8 inches
+
+* Depth 4 inches
+
+* Each stage lifts 12 inch
+
+* 4 motors
+
+* **12 links per rotation, 1/2 inch per link = 6 inches per rotation**
+
+Reversed Bar uses parallelograms to lift
+
+* Really tall
+* 4 motors
+* Takes up more space
+
+6 wheel tank has 2 grippy in the middle and 4 omniwheels
+
+* All the wheels are driven together with sprockets and chains
+* 4 inch wheels? They might be 4.25 inches cause vex is weird
+* Motors are on rear wheel to enable more stuff at the front but motor on center wheel would be better cause if one of the chains breaks, you still have 2 wheels on the side
+* 2 motors on each side
+
+Double wheel launcher
+
+* 2 wheels + 2 motors
+* Can launch sideways by having one motor faster than the other
+* Can only launch 2 meters per second with 600 rpm motors
+* Probably will have gearing
+* Adjust height by changing speed of motors
+
+Single wheel launcher
+
+* Needs a gear box
+* Metal acts as ramp to launch ball
+* Paddle starting position makes it inconsistent / not really repeatable
+* Can't aim sideways
+* "Cantilever beam"
+
+Vertical Intake + Tread intake
+
+* Smaller input area
+* 2 motors
+
+Rubber band intake
+
+* One motor
+* Gearing in case you want it to go fast
+* If it's slower, can be used to flip caps
+* Might spin at around 2x the speed of the drivetrain
+
+Rotating double forklift (passive)
+
+* Kind of just runs into the cap
+* 2 motors, one to fold up the system for storage and one to rotate the forklift to flip caps
+* Can pick up tilted caps only if driver approaches from the side
+
+Rotating double forklift (active)
+
+* Pretty much the same. Just the top can fold up and down
+* Can pick up caps in any angle whereas passive cannot
+
+Teeth active forklift
+
+* Only needs 2 motors
+* Around 1 pound
+* Latches onto the edge of the cap
+* Kind of high torque
+* Can manipulate caps from any angle except 'when cap is angled towards you'
+* Can't skim the ground
+
+Cap flipper
+
+* Only needs one motor
+* Can only do high scoring caps at the posts
+* Lightest
+
+# Controls
+
+Buttons from left to right, top to bottom:
+
+* Button 1: Intake fast and off toggle
+* Button 2:
+* Button 3:
+* Button 4: Intake slow and off toggle to flip caps
+* Button 5: Toggle ball launcher
+* Button 6: Move cap flipper down
+* Button 7: Move cap flipper up
+* Button 8:
+
+L1: Aim using COMPUTER SCIENCE
+
+L2:
+
+R1: Shoot using ball
+
+R2: Throttle
+
+X-axis Left: Turning
+
+Y-axis Left:
+
+X-axis Right: 
+
+Y-axis Right: Moving the lift up and down
