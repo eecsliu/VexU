@@ -1,7 +1,7 @@
 import serial
 import time
 
-ser = serial.Serial('/dev/rfcomm6')
+ser = serial.Serial('/dev/rfcomm13')
 ser.timeout = 1
 ser
 
