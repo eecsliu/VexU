@@ -12,8 +12,22 @@ Function for turning in place autonomous
 
 ```pseudocode
 def turninplaceAutonomous(rotation):
+	update_orientation()//Pseudocode from below
+	target_orientation = orientation + rotation
+	
 	motor1.rotateFor(rotation * robot_width / wheel_diameter)
 	motor2.rotateFor(-rotation * robot_width / wheel_diameter)
+	
+	update_orientation()
+	error_sum, last_error, current_error = 0, orientation - target_orientation, orientation - target_orientation
+	pid_sum = P_CONSTANT * last_error + I_CONSTANT * error_sum//Don't need derivative 
+	while pid_sum > MINIMUM_ERROR_CONSTANT:
+		activate_motors(pid_sum)
+        update_orientation()
+        error_sum, last_error, current_error = error_sum + current_error, current_error, orientation - target_orientation
+        pid_sum = P_CONSTANT * last_error + I_CONSTANT * error_sum + D_CONSTANT * 
+	
+	
 ```
 
 Function for manual controls
@@ -23,6 +37,8 @@ Function for manual controls
 def control():
     linearPower = controller.right_trigger() - controller.left_trigger()
     angularPower = controller.axis_1_value() * SENSITIVITY_CONSTANT
+    activate_motors(angularPower)
+def activate_motors(angularPower, linearPower = 0)
     rightPwm = leftPwm = linearPower
     leftPwm -= angularPower
     rightPwm += angularPower
@@ -89,27 +105,57 @@ def toggle_fast():
 
 
 
+Control Function for orientation
+
+```pseudocode
+Adafruit_LSM9DS0 lsm = Adafruit_LSM9DS0()
+Vector3 accelZero
+Vector3 magZero
+Vector3 gyroZero
+float orientation
+
+//Runs in the setup
+def zero():
+	lsm.begin()
+	lsm.read()
+	accelZero = lsm.accelData
+	magZero = lsm.magData
+	gyroZero = lsm.gyroData
+
+//Runs in the loop
+def update_orientation():
+	lsm.read()
+	accelOffset = lsm.accelData - accelZero
+	magOffset = lsm.magData - magZero
+	gyroOffset = lsm.gyroData - gyroZero
+	orientation = (magOffset.x +gyroOffset.y) / 2
+	
+```
+
 
 
 
 
 API for motor actions
-​    Motor.spin(directionType::fwd,50,velocityUnits::rpm);
-​    Motor.rotateTo(90,rotationUnits::deg,50,velocityUnits::pct);
-​    Motor.rotateFor(90,rotationUnits::deg,50,velocityUnits::pct);
-​    Motor.rotateFor(2.5,timeUnits::sec,50,velocityUnits::pct);
-​    Motor.startRotateTo(90,rotationUnits::deg,50,velocityUnits::pct);
-​    Motor.startRotateFor(90,rotationUnits::deg,50,velocityUnits::pct);
-​    Motor.stop(brakeType::coast);
+
+* Motor.spin(directionType::fwd,50,velocityUnits::rpm);
+* Motor.rotateTo(90,rotationUnits::deg,50,velocityUnits::pct);
+* Motor.rotateFor(90,rotationUnits::deg,50,velocityUnits::pct);
+* Motor.rotateFor(2.5,timeUnits::sec,50,velocityUnits::pct);
+* Motor.startRotateTo(90,rotationUnits::deg,50,velocityUnits::pct);
+* Motor.startRotateFor(90,rotationUnits::deg,50,velocityUnits::pct);
+* Motor.stop(brakeType::coast);
+
 API for motor sensing
-​    Motor.isSpinning();
-​    Motor.rotation(rotationUnits::deg);
-​    Motor.velocity(velocityUnits::pct);
-​    Motor.current(currentUnits::amp);
-​    Motor.power(powerUnits::watts);
-​    Motor.torque(torqueUnits::Nm);
-​    Motor.efficiency(percentUnits::pct);
-​    Motor.temperature(percentUnits::pct);
+
+* Motor.isSpinning();
+* Motor.rotation(rotationUnits::deg);
+* Motor.velocity(velocityUnits::pct);
+* Motor.current(currentUnits::amp);
+* Motor.power(powerUnits::watts);
+* Motor.torque(torqueUnits::Nm);
+* Motor.efficiency(percentUnits::pct);
+* Motor.temperature(percentUnits::pct);
 
 # Notes from design review:
 
