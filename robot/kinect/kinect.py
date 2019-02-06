@@ -94,7 +94,6 @@ def display_blue(dev, data, timestamp):
 		keep_running = False
 
 print('Press ESC in window to stop')
-freenect.runloop(#video=display_rgb,
                  video=display_red,
                  body=body)
 freenect.runloop(#video=display_rgb,
