@@ -101,6 +101,18 @@ def toggle_fast():
 		motor.spin(directionType::fwd, FAST_SPEED)
 	else:
 		motor.stop()
+		
+def toggle_slow_back():
+	if not motor.isSpinning() or not motor.velocity == SLOW_SPEED
+		motor.spin(directionType::back, SLOW_SPEED)
+	else:
+		motor.stop()
+
+def toggle_fast_back():
+	if not motor.isSpinning() or not motor.velocity == FAST_SPEED
+		motor.spin(directionType::back, FAST_SPEED)
+	else:
+		motor.stop()
 ```
 
 
@@ -131,11 +143,27 @@ def update_orientation():
 	orientation = (magOffset.x +gyroOffset.y) / 2
 	
 ```
+Large Robot Autonomous strategy:
+```pseudocode
+forwardAutonomous(distance) toggle_fast(forward) acquire_cap() toggle_fast(forward) turninplaceAutonomous(-90) forwardAutonomous(distance) turninplaceAutonomous(-270) liftArm(HIGH) forwardAutonomous(distance) resetArm() forwardAutonomous(-distance) turninplaceAutonomous(90) forwardAutonomous(distance) turninplaceAutonomous(90) forwardAutonomous(distance) acquire_cap() turninplaceAutonomous(180) forwardAutonomous(distance) turninplaceAutonomous(90) liftArm(HIGH) forwardAutonomous(distance) resetArm() turninplaceAutonomous(-90) forwardAutonomous(distance) turninplaceAutonomous(-90) forwardAutonomous(distance) aim() shoot() aim() shoot() turninplaceAutonomous(-100) forwardAutonomous(distance)
+```
+Small Robot Autonomous strategy:
+```pseudocode
+forwardAutonomous(distance) toggle_fast(forward) turninplaceAutonomous(90) forwardAutonomous(distance) turninplaceAutonomous(90) forwardAutonomous(distance) acquire_cap() turninplaceAutonomous(35) forwardAutonomous(distance) lift_arm(HIGH) forwardAutonomous(distance) resetArm() turninplaceAutonomous(180) forwardAutonomous(distance) turninplaceAutonomous(180) forwardAutonomous(distance) turninplaceAutonomous(-90) forwardAutonomous(distance) turninplaceAutonomous(180) forwardAutonomous(distance) turninplaceAutonomous(90) delay(time) aim() shoot() turninPlaceAutonomous(90) aim() shoot()
+```
 
-
-
-
-
+Functions for Aiming:
+```pseudocode
+getDistance()
+getOrientationChange()
+calculatePower(distance)
+def aim():	
+	turninplaceAutonomous(getOrientationChange())
+	
+def shoot():
+	calculatePower(getDistance())
+	place_ball()
+```
 API for motor actions
 
 * Motor.spin(directionType::fwd,50,velocityUnits::rpm);
