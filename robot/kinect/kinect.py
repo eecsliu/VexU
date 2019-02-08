@@ -93,9 +93,4 @@ def display_blue(dev, data, timestamp):
 	if cv2.waitKey(10) == 27:
 		keep_running = False
 
-print('Press ESC in window to stop')
-                 video=display_red,
-                 body=body)
-freenect.runloop(#video=display_rgb,
-                 video=display_blue,
-                 body=body)
+

@@ -1,11 +1,11 @@
-import serial
 import time
+import serial
 
-ser = serial.Serial('/dev/ttyS0')
+ser = serial.Serial('/dev/ttyS0', 9600)
 ser.timeout = 1
 
 def send_heartbeat():
-    ser.write(b'+++')
+    ser.write(b'1')
 
 def enable_motor():
     ser.write('n'.charAt(0))
