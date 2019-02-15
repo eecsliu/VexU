@@ -10,4 +10,7 @@
 * A Robot which is Alliance Parked earns three **(3)** points
 * An Alliance that wins the Autonomous Bonus earns four **(4)** points
 
-![1541281492258](C:\Users\Samuel\AppData\Roaming\Typora\typora-user-images\1541281492258.png)
+### Idea
+
+Use ultrasonic sensor (Panel of 3 in the front) to confirm orientation in the autonomous phase by bouncing off the walls.
+
