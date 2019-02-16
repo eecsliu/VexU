@@ -28,7 +28,7 @@ def displayRedOrBlue(dev, data, timestamp):
         upper_red = np.array([180,255,255])
         mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
 
-        lower_blue = np.array([100, 100, 0])
+        lower_blue = np.array([100, 100, 100])
         upper_blue = np.array([170, 255, 255])
         maskBlue = cv2.inRange(img_hsv, lower_blue, upper_blue)
 
