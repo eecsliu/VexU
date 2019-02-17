@@ -32,8 +32,8 @@ def displayRedOrBlue(dev, data, timestamp):
         upper_blue = np.array([170, 255, 255])
         maskBlue = cv2.inRange(img_hsv, lower_blue, upper_blue)
 
-        lower_yellow = np.array([20, 50, 50])
-        upper_yellow = np.array([50, 255, 255])
+        lower_yellow = np.array([15, 0, 0])
+        upper_yellow = np.array([60, 255, 255])
         maskYellow = cv2.inRange(img_hsv, lower_yellow, upper_yellow)
 
         mask = mask0+mask1+maskBlue+maskYellow
@@ -72,7 +72,7 @@ def displayRedOrBlue(dev, data, timestamp):
         print(midpoint(box[0],box[2]))
         cv2.drawContours(output,[box],0,(0,0,255),2) 
         output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
-        circles = cv2.HoughCircles(output, cv2.HOUGH_GRADIENT, 1, 10, param1=50,param2=30,minRadius=20,maxRadius=50)
+        circles = cv2.HoughCircles(output, cv2.HOUGH_GRADIENT, 1, 50, param1=50,param2=35,minRadius=20,maxRadius=50)
         if circles is not None:
 	# convert the (x, y) coordinates and radius of the circles to integers
             circles = np.round(circles[0, :]).astype("int")
