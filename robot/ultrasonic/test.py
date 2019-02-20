@@ -7,10 +7,12 @@ GPIO.setmode(GPIO.BCM)
 #set GPIO Pins
 GPIO_TRIGGER = 18
 GPIO_ECHO = 24
+GPIO_SIG = 23
  
 #set GPIO direction (IN / OUT)
 GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
 GPIO.setup(GPIO_ECHO, GPIO.IN)
+GPIO.setup(GPIO_SIG, GPIO.OUT)
  
 def distance():
     # set Trigger to HIGH
@@ -45,8 +47,10 @@ if __name__ == '__main__':
             dist = distance()
             if dist < 10:
             	print("detected")
+            	GPIO.output(GPIO_SIG, True)
             time.sleep(0.25)  #in the real code, do not sleep for this long unless we are running another thread with this code. Just run it at the same framerate as the camera
- 
+            GPIO.output(GPIO_SIG, False) 		
+ 		
         # Reset by pressing CTRL + C
     except KeyboardInterrupt:
         print("Measurement stopped by User")
