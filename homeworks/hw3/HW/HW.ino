@@ -10,6 +10,7 @@
 
 char bluetooth_value;
 float time_elapsed = 0;
+float motor_timer = 0;
 float motor_state = LOW;
 bool connected = false;
 float led_state = LOW;
@@ -27,6 +28,7 @@ void setup() {
 void loop() {
   delay(50);
   time_elapsed += 50;
+  motor_timer += 50;
   if (Serial.available())
   {
     time_elapsed = 0;
@@ -35,7 +37,12 @@ void loop() {
   }
   if (bluetooth_value == 'n')
   {
-    motor_state = HIGH;
+    if (motor_timer > 1000)
+    {
+      motor_timer = 0;
+      if (motor_state == HIGH) motor_state = LOW;
+      else motor_state = HIGH;
+    }
   }
   else if (bluetooth_value == 'f'){
     motor_state = LOW;
