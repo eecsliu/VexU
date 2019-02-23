@@ -39,13 +39,10 @@ void pre_auton( void ) {
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-
 void unshoot() {
     FlyWheelMotor.stop();
     BottomIntake.stop();
 }
-
-
 bool autonomousActive = false;
 const double wheelDiameter = 4;
 const double wheelCircumference = wheelDiameter * M_PI;
@@ -110,50 +107,8 @@ void autonomous( void ) {
     forwardAutonomous(32);
     turninplaceAutonomous(90);
     forwardAutonomous(15);
-  // ..........................................................................
-  // Insert autonomous user code here.
-  // ..........................................................................
 
 }
-// int receiveTask() {
-//     // enable port 18 as generic serial port
-//     vexGenericSerialEnable( vex::PORT12, 0 );
-//     // change baud rate, default is 230k
-//     vexGenericSerialBaudrate( vex::PORT12, 115200 );
-//     // allow vexos to reconfigure the port
-//     // the port will remain as a generic serial port until the brain is power cycled
-//     this_thread::sleep_for(10);
-
-//     // buffer for rx data
-//     uint8_t rxbuf[256];
-
-//     int totalRead = 0;
-
-//     while(1) {
-//       // check to see if we have any bytes in the receive buffer
-//       int nRead = vexGenericSerialReceive( vex::PORT12, rxbuf, sizeof(rxbuf)  );
-
-//       // yes ? then display
-//       if( nRead > 0 ) {
-//         totalRead += nRead;
-//         Brain.Screen.setCursor( 4, 2 );
-//         Brain.Screen.print("Bytes received %d", totalRead );
-
-
-//         if( totalRead > 16 )
-//           totalRead = 16;
-//         Brain.Screen.setCursor( 5, 2 );
-//         Brain.Screen.clearLine();
-//         Brain.Screen.setCursor( 5, 2 );
-//         for(int i=0;i<nRead;i++)
-//           Brain.Screen.print("%02X ", rxbuf[i] );
-//       }
-
-//       // read often
-//     }
-
-//     return(0);
-// }
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*                              User Control Task                             */
@@ -216,35 +171,6 @@ void toggleNull() {
     return;
 }
 
-list<motor> lift_motors;
-//TODO Add lift motors
-//lift_motors.push_back();
-const int LOW_HEIGHT = 0;
-const int HIGH_HEIGHT = 1;
-void liftArm(int height){
-    if (height == LOW_HEIGHT){
-        LiftMotor.startRotateTo(90, rotationUnits::deg);
-    }
-    else{
-        LiftMotor.startRotateTo(0, rotationUnits::deg);
-    }
-}
-void liftHigh(){
-    liftArm(HIGH_HEIGHT);
-}
-void liftLow(){
-    liftArm(LOW_HEIGHT);
-}
-void resetArm(){
-    //liftHelperFunction(reset_switch, directionType::rev);
-}
-/*void liftHelperFunction(switch, direction){
-    while(not switch.is_pressed()){
-        for (int i = 0; i < lift_motors.size(); i ++){
-            lift_motors[i].spin(direction, 50);
-        }
-    }
-}*/
 const int FAST_SPEED = 100;
 const int SLOW_SPEED = 50;
 void toggle_slow(){
@@ -282,39 +208,6 @@ void toggle_fast_back(){
     }
 }
 
-double startPositionAcquisition = AcquisitionMotor.rotation(rotationUnits::deg);
-void toggleAcquisitionHelper (double degrees){
-    AcquisitionMotor.startRotateTo(startPositionAcquisition + degrees, rotationUnits::deg);
-}
-void toggleAcquisitionStowed(){
-    while (!(StowedLimit.pressing())){
-        AcquisitionMotor.spin(directionType::rev, 50, velocityUnits::pct);
-    }
-}
-void toggleAcquisitionFlipped(){
-    AcquisitionMotor.startRotateTo(startPositionAcquisition + 180, rotationUnits::deg);
-}
-void toggleAcquisitionGrabbing(){
-    while (!(GrabbingLimit.pressing())){
-        AcquisitionMotor.spin(directionType::fwd, 100, velocityUnits::pct);
-    }
-}
-/*
-double getDistance(){
-    return 10;
-}
-double calculatePower(double distance){
-    FlyWheelMotor.spin(directionType::fwd, distance, velocityUnits::rpm);
-}
-double getOrientationChange(){
-    return 10;
-}
-void aim(){
-    turninplaceAutonomous(getOrientationChange());
-}
-void place_ball(){
-
-}*/
 void shoot(){
     //calculatePower(getDistance());
     //place_ball();
@@ -335,7 +228,6 @@ void shoot(){
     }
 }
 
-
 void intake(){
     BottomIntake.spin(directionType::rev, 50, velocityUnits::pct);
 }
@@ -344,40 +236,9 @@ void stop_intake() {
     BottomIntake.stop();
 }
 
-        /*
-Adafruit_LSM9DS0 lsm = Adafruit_LSM9DS0()
-Vector3 accelZero
-Vector3 magZero
-Vector3 gyroZero
-float orientation
-
-//Runs in the setup
-def zero():
-    lsm.begin()
-    lsm.read()
-    accelZero = lsm.accelData
-    magZero = lsm.magData
-    gyroZero = lsm.gyroData
-
-//Runs in the loop
-def update_orientation():
-    lsm.read()
-    accelOffset = lsm.accelData - accelZero;
-    magOffset = lsm.magData - magZero;
-    gyroOffset = lsm.gyroData - gyroZero;
-    orientation = (magOffset.x +gyroOffset.y) / 2;
-*/
 void usercontrol( void ) {
   // User control code here, inside the loop
   while (1){
-    // This is the main execution loop for the user control program.
-    // Each time through the loop your program should update motor + servo
-    // values based on feedback from the joysticks.
-
-    // ........................................................................
-    // Insert user code here. This is where you use the joystick values to
-    // update your motors, etc.
-    // ........................................................................
     //This code is for drive train
     if (driveType == 0){
         driveNormal();
