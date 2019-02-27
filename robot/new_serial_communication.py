@@ -13,6 +13,16 @@ GPIO.setup(RIGHT, GPIO.OUT)
 
 try:  
     while True:  
+<<<<<<< HEAD
+        GPIO.output(24, 1)         # set GPIO24 to 1/GPIO.HIGH/True  
+        sleep(0.5)                 # wait half a second  
+        if GPIO.input(24):  
+            print "LED just about to switch off"  
+        GPIO.output(24, 0)         # set GPIO24 to 0/GPIO.LOW/False  
+        sleep(0.5)                 # wait half a second  
+        if not GPIO.input(24):  
+            print "LED just about to switch on"  
+=======
         GPIO.output(FORWARD, 1)         # set GPIO24 to 1/GPIO.HIGH/True  
         sleep(1)                 # wait half a second  
         if GPIO.input(FORWARD):  
@@ -21,6 +31,7 @@ try:
         sleep(3)                 # wait half a second  
         if not GPIO.input(FORWARD):  
             print "LED on"  
+>>>>>>> 6f8c83bf7f4b88f4c7c557bd33aaf497888716d8
 except KeyboardInterrupt:          # trap a CTRL+C keyboard interrupt  
     GPIO.cleanup()                 # resets all GPIO ports used by this program  
 
