@@ -76,6 +76,38 @@ void climb() {
     RightMotorOne.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotorTwo.rotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
 }
+void flip_autonomous() {
+    Flipper.stop();
+    Flipper.setVelocity(30, velocityUnits::pct);
+    Flipper.rotateFor(90, rotationUnits::deg);
+    Flipper.stop(brakeType::hold);
+}
+void unflip_autonomous() {
+    Flipper.setVelocity(30, velocityUnits::pct);
+    Flipper.rotateFor(-90, rotationUnits::deg);
+    Flipper.stop(brakeType::hold);
+}
+void halt() {
+    LeftLift.stop(brakeType::hold);
+    RightLift.stop(brakeType::hold);
+}
+void lift_helper(double height) {
+    halt();
+    LeftLift.setVelocity(80, velocityUnits::pct);
+    RightLift.setVelocity(80, velocityUnits::pct);
+    LeftLift.startRotateTo(height, rotationUnits::deg);
+    RightLift.startRotateTo(-height, rotationUnits::deg);
+}
+void high_post_autonomous() {
+    lift_helper(4000);
+}
+void mid_post_autonomous() {
+    lift_helper(3000);
+}
+void floor_autonomous() {
+    halt();
+    lift_helper(0);
+}
 /*
 bool receiveSerial() {
     return !Ready.pressing();
@@ -147,23 +179,78 @@ void unspin_up() {
 void flipGround() {
     Flipper.startRotateTo(flipperStartPosition, rotationUnits::deg);
 }
+void toggleDrive(){
+    driveType = !driveType;
+    Controller1.Screen.print(driveType);
+}
+
+void toggleShooterFront() {
+    direction = 1;
+}
+
+void toggleLifterFront() {
+    direction = -1;
+}
+
+void toggleNull() {
+    return;
+}
+
+void unjamShooter() {
+    TopIntake.spin(directionType::fwd, 50, velocityUnits::pct);
+}
+void stopUnjam() {
+    TopIntake.stop();
+}
+
+void intake(){
+    BottomIntake.spin(directionType::rev, 50, velocityUnits::pct);
+}
+void reverse_intake() {
+    BottomIntake.spin(directionType::fwd, 100, velocityUnits::pct);
+}
+
+void stop_intake() {
+    BottomIntake.stop();
+}
+void maintain_flip() {
+    Flipper.stop(brakeType::hold);
+}
 
 void autonomous( void ) {
-    int team = 1; //1 for red, -1 for blue
-    forwardAutonomous(8);
-    //shoot_autonomous();
-    forwardAutonomous(38);
-    forwardAutonomous(-12);
+    int team = 1;//1 for red, -1 for blue
+    spin_up();
+    forwardAutonomous(29);
+    //turninplaceAutonomous(360);
+    shoot_autonomous();
+
+    unflip_autonomous();
+    unflip_autonomous();
+    forwardAutonomous(-29);
+    forwardAutonomous(-5);
+    unshoot();
+
     turninplaceAutonomous(90 * team);
-    forwardAutonomous(47);
+    intake();
+    forwardAutonomous(42.75);
     turninplaceAutonomous(-90 * team);
-    forwardAutonomous(12);
-    forwardAutonomous(-12);
+    forwardAutonomous(-15);
+    flip_autonomous();
+    forwardAutonomous(4.5);//Changed from 4 -> 4.5
+
+    mid_post_autonomous();
+    turninplaceAutonomous(90 * team);
+    forwardAutonomous(-48.25);//This value is countered by line 275. Changed from 49.25 -> 48.25
+
+    lift_helper(2500);
+    unflip_autonomous();
+    forwardAutonomous(4.25);
     turninplaceAutonomous(-90 * team);
-    forwardAutonomous(12);
-    turninplaceAutonomous(-90 * team);
-    forwardAutonomous(25);
-    climb();
+    floor_autonomous();
+    forwardAutonomous(59.75);
+
+    turninplaceAutonomous( 45 * team);
+    forwardAutonomous(13);
     //Start of robot skills. BE SURE TO COMMENT OUT DURING COMPETITION
     /*
     forwardAutonomous(6);
@@ -228,7 +315,7 @@ void activate_motors(double angularPower, double linearPower){
 }
 void driveNormal(){
     if (autonomousActive == false){
-        double SENSITIVITY_CONSTANT = -0.15;
+        double SENSITIVITY_CONSTANT = -0.35;
         if (Controller1.ButtonR1.pressing()) {
             SENSITIVITY_CONSTANT = -1;
         }
@@ -237,7 +324,7 @@ void driveNormal(){
         if (abs(linearPower) < 10) {
             linearPower = 0;
         }
-        if (abs(angularPower < 10)) {
+        if (abs(angularPower) < 1) {
             angularPower = 0;
         }
         activate_motors(angularPower, linearPower);
@@ -250,7 +337,7 @@ void driveTank(){
         if (abs(leftPower) < 10) {
             leftPower = 0;
         }
-        if (abs(rightPower < 10)) {
+        if (abs(rightPower) < 10) {
             rightPower = 0;
         }
         LeftMotorOne.spin(directionType::fwd, leftPower, velocityUnits::pct);
@@ -259,48 +346,12 @@ void driveTank(){
         RightMotorTwo.spin(directionType::rev, rightPower, velocityUnits::pct);
     }
 }
-void toggleDrive(){
-    driveType = !driveType;
-    Controller1.Screen.print(driveType);
-}
 
-void toggleShooterFront() {
-    direction = 1;
-}
-
-void toggleLifterFront() {
-    direction = -1;
-}
-
-void toggleNull() {
-    return;
-}
-
-void unjamShooter() {
-    TopIntake.spin(directionType::fwd, 50, velocityUnits::pct);
-}
-void stopUnjam() {
-    TopIntake.stop();
-}
-
-void intake(){
-    BottomIntake.spin(directionType::rev, 50, velocityUnits::pct);
-}
-void reverse_intake() {
-    BottomIntake.spin(directionType::fwd, 100, velocityUnits::pct);
-}
-
-void stop_intake() {
-    BottomIntake.stop();
-}
-void maintain_flip() {
-    Flipper.stop(brakeType::hold);
-}
-void halt() {
-    LeftLift.stop(brakeType::hold);
-    RightLift.stop(brakeType::hold);
-}
-
+int HIGHHIGH = 6000;
+int HIGHMID = 3500;
+int HIGH = 4500;
+int MID = 3000;
+int FLOOR = 0;
 void lift(){
     if (autonomousActive == false){
         double power = Controller2.Axis2.position(percentUnits::pct);
@@ -314,37 +365,37 @@ void lift(){
                 power = -80;
             }
         } else if (Controller2.ButtonR1.pressing()) {
-            if (abs(RightLift.rotation(rotationUnits::deg) - 5000) <100) {
+            if (abs(RightLift.rotation(rotationUnits::deg) - HIGHMID) <100) {
                 power = 0;
             }
-            else if (RightLift.rotation(rotationUnits::deg) < 5000) {
+            else if (RightLift.rotation(rotationUnits::deg) < HIGHMID) {
                 power = 80;
             } else {
                 power = -80;
             }
         } else if (Controller2.ButtonX.pressing()) {
-            if (abs(RightLift.rotation(rotationUnits::deg) - 4500) <100) {
+            if (abs(RightLift.rotation(rotationUnits::deg) - HIGH) <100) {
                 power = 0;
             }
-            else  if (RightLift.rotation(rotationUnits::deg) < 4500) {
+            else  if (RightLift.rotation(rotationUnits::deg) < HIGH) {
                 power = 80;
             } else {
                 power = -80;
             }
         } else if (Controller2.ButtonA.pressing()) {
-            if (abs(RightLift.rotation(rotationUnits::deg) - 3000) <100) {
+            if (abs(RightLift.rotation(rotationUnits::deg) - MID) <100) {
                 power = 0;
             }
-            else if (RightLift.rotation(rotationUnits::deg) < 3000) {
+            else if (RightLift.rotation(rotationUnits::deg) < MID) {
                 power = 80;
             } else {
                 power = -80;
             }
         } else if (Controller2.ButtonB.pressing()) {
-            if (abs(RightLift.rotation(rotationUnits::deg) - 0) <100) {
+            if (abs(RightLift.rotation(rotationUnits::deg) - FLOOR) <100) {
                 power = 0;
             }
-            else if (RightLift.rotation(rotationUnits::deg) < 0) {
+            else if (RightLift.rotation(rotationUnits::deg) < FLOOR) {
                 power = 80;
             } else {
                 power = -80;
@@ -365,17 +416,17 @@ void lift(){
 }
 void flip() {
     if (autonomousActive == false){
-        double power = Controller2.Axis3.position(percentUnits::pct)/2;
+        double power = Controller2.Axis3.position(percentUnits::pct);
         if (Controller2.ButtonUp.pressing()) {
-            power = 50;
+            power = 25;
         } else if (Controller2.ButtonDown.pressing()) {
-            power = -50;
+            power = -25;
         } else if (Controller2.ButtonLeft.pressing()) {
-            power = (flipperStartPosition - Flipper.rotation(rotationUnits::deg))/2.0;
+            power = (flipperStartPosition - Flipper.rotation(rotationUnits::deg))/1.4;
         } else if (Controller2.ButtonRight.pressing()) {
             power = (flipperStartPosition + 105 - Flipper.rotation(rotationUnits::deg))/1.2;
         }
-        if (abs(power) < 10) {
+          if (abs(power) < 10) {
             maintain_flip();
             return;
         }
@@ -387,23 +438,6 @@ void flip() {
     }
 }
 
-void lift_helper(double height) {
-    halt();
-    LeftLift.setVelocity(80, velocityUnits::pct);
-    RightLift.setVelocity(80, velocityUnits::pct);
-    LeftLift.startRotateTo(height, rotationUnits::deg);
-    RightLift.startRotateTo(-height, rotationUnits::deg);
-}
-void high_post_autonomous() {
-    lift_helper(4000);
-}
-void mid_post_autonomous() {
-    lift_helper(3000);
-}
-void floor_autonomous() {
-    halt();
-    lift_helper(0);
-}
 
 void shoot(){
     //calculatePower(getDistance());
