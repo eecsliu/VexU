@@ -56,6 +56,8 @@ void forwardAutonomous(double distance) {
     RightMotorOne.setVelocity(20, velocityUnits::pct);
     LeftMotorTwo.setVelocity(20, velocityUnits::pct);
     RightMotorTwo.setVelocity(20, velocityUnits::pct);
+    //Converts linear distance to rotations of the wheel using formula
+    //Then, rotates wheels accordingly
     LeftMotorOne.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotorOne.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
@@ -71,6 +73,7 @@ void climb() {
     RightMotorOne.setVelocity(50, velocityUnits::pct);
     LeftMotorTwo.setVelocity(50, velocityUnits::pct);
     RightMotorTwo.setVelocity(50, velocityUnits::pct);
+    //Drives forward 45 inches at 50 % speed
     LeftMotorOne.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotorOne.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
@@ -157,6 +160,9 @@ void turninplaceAutonomous(double degrees) {
     RightMotorOne.setVelocity(20, velocityUnits::pct);
     LeftMotorTwo.setVelocity(20, velocityUnits::pct);
     RightMotorTwo.setVelocity(20, velocityUnits::pct);
+    //Creates an imaginary circle that is the circle of rotation
+    //that the robot would rotate in. Calculates the circumference of that
+    //circle and rotates the motors that number of degrees
     LeftMotorOne.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
     RightMotorOne.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
@@ -276,10 +282,22 @@ void autonomous( void ) {
 /*  You must modify the code to add your own robot specific commands here.    */
 /*----------------------------------------------------------------------------*/
 void activate_motors(double angularPower, double linearPower){
+    //When the motors are low power, just convert to 10.
+    //This creates a dead zone and prevents drifting
+    if (abs(linearPower) < 10) {
+        linearPower = 0;
+    }
+    if (abs(angularPower) < 10) {
+        angularPower = 0;
+    }
+    //Sets both motors to the linear power. Then, adjusts
+    //speed of left and right motors based off angular amount
     double rightPwm = linearPower;
     double leftPwm = linearPower;
     leftPwm -= angularPower;
     rightPwm += angularPower;
+    //If power is greater than 100% for a side, just set to 100% and change
+    //other side accordingly
     if (leftPwm > 100){
         rightPwm -= leftPwm - 100;
         leftPwm = 100;
@@ -296,6 +314,7 @@ void activate_motors(double angularPower, double linearPower){
         leftPwm += -100 - rightPwm;
         rightPwm = -100;
     }
+    //Spins the motors the right direction at the calculated power
     if (leftPwm < 0) {
         LeftMotorOne.spin(directionType::rev, - leftPwm, velocityUnits::pct);
         LeftMotorTwo.spin(directionType::rev, - leftPwm, velocityUnits::pct);
@@ -316,17 +335,15 @@ void activate_motors(double angularPower, double linearPower){
 void driveNormal(){
     if (autonomousActive == false){
         double SENSITIVITY_CONSTANT = -0.35;
+        //When r1 is pressed, turns become faster so can do sudden turns
         if (Controller1.ButtonR1.pressing()) {
             SENSITIVITY_CONSTANT = -1;
         }
+        //Calculate forward power based off direction
         double linearPower = Controller1.Axis3.position(percentUnits::pct) * direction;
+        //Multiply angular power by SENSITIVITY_CONSTANT so that it's possible
+        //to change how fast robot turns
         double angularPower = Controller1.Axis1.value() * SENSITIVITY_CONSTANT;
-        if (abs(linearPower) < 10) {
-            linearPower = 0;
-        }
-        if (abs(angularPower) < 1) {
-            angularPower = 0;
-        }
         activate_motors(angularPower, linearPower);
     }
 }

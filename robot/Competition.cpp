@@ -50,6 +50,8 @@ void forwardAutonomous(double distance) {
     LeftMotor2.setVelocity(30, velocityUnits::pct);
     RightMotor.setVelocity(30, velocityUnits::pct);
     RightMotor2.setVelocity(30, velocityUnits::pct);
+    //Converts linear distance to rotations of the wheel using formula
+    //Then, rotates wheels accordingly
     LeftMotor.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     LeftMotor2.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotor.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
@@ -63,6 +65,9 @@ void turninplaceAutonomous(double degrees) {
     LeftMotor2.setVelocity(30, velocityUnits::pct);
     RightMotor.setVelocity(30, velocityUnits::pct);
     RightMotor2.setVelocity(30, velocityUnits::pct);
+    //Creates an imaginary circle that is the circle of rotation
+    //that the robot would rotate in. Calculates the circumference of that
+    //circle and rotates the motors that number of degrees
     LeftMotor.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
     LeftMotor2.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
     RightMotor.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
@@ -76,6 +81,7 @@ void climb() {
     RightMotor.setVelocity(50, velocityUnits::pct);
     LeftMotor2.setVelocity(50, velocityUnits::pct);
     RightMotor2.setVelocity(50, velocityUnits::pct);
+    //Drives forward 45 inches at 50 % speed
     LeftMotor.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     LeftMotor2.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotor.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
@@ -83,18 +89,22 @@ void climb() {
 }
 
 void activate_motors(double angularPower, double linearPower){
-
+    //When the motors are low power, just convert to 10.
+    //This creates a dead zone and prevents drifting
     if (abs(linearPower) < 10) {
         linearPower = 0;
     }
     if (abs(angularPower) < 10) {
         angularPower = 0;
     }
-
+    //Sets both motors to the linear power. Then, adjusts
+    //speed of left and right motors based off angular amount
     double rightPwm = linearPower;
     double leftPwm = linearPower;
     leftPwm -= angularPower;
     rightPwm += angularPower;
+    //If power is greater than 100% for a side, just set to 100% and change
+    //other side accordingly
     if (leftPwm > 100){
         rightPwm -= leftPwm - 100;
         leftPwm = 100;
@@ -111,6 +121,7 @@ void activate_motors(double angularPower, double linearPower){
         leftPwm += -100 - rightPwm;
         rightPwm = -100;
     }
+    //Spins the motors the right direction at the calculated power
     if (leftPwm < 0){
         LeftMotor.spin(directionType::rev, - leftPwm, velocityUnits::pct);
         LeftMotor2.spin(directionType::rev, - leftPwm, velocityUnits::pct);
@@ -132,13 +143,17 @@ void activate_motors(double angularPower, double linearPower){
 void driveNormal(){
     if (autonomousActive == false){
         double SENSITIVITY_CONSTANT;
+        //When r1 is pressed, turns become slower so it's easier to aim
         if (Controller1.ButtonR1.pressing()) {
             SENSITIVITY_CONSTANT = -0.15;
         }
         else {
             SENSITIVITY_CONSTANT = -0.30;
         }
+        //Calculate forward power based off direction
         double linearPower = Controller1.Axis3.position(percentUnits::pct) * direction;
+        //Multiply angular power by SENSITIVITY_CONSTANT so that it's possible
+        //to change how fast robot turns
         double angularPower = Controller1.Axis1.value() * SENSITIVITY_CONSTANT;
         activate_motors(angularPower, linearPower);
     }
@@ -375,7 +390,7 @@ int main() {
     pre_auton();
 
     //Set up callbacks for autonomous and driver control periods.
-    //Competition.autonomous( autonomous );
+    Competition.autonomous( autonomous );
     Competition.drivercontrol( usercontrol );
 
     //Prevent main from exiting with an infinite loop.
