@@ -48,7 +48,7 @@ void unshoot() {
 bool autonomousActive = false;
 const double wheelDiameter = 4;
 const double wheelCircumference = wheelDiameter * M_PI;
-const double robotWidth = 11.25 * (360 / (360 - 16.399));
+const double robotWidth = (11.25 * (360.0 / 339.56)) * (357.65 / 360) * (362.535/360);
 bool driveType = false;
 void forwardAutonomous(double distance) {
     autonomousActive = true;
@@ -56,8 +56,6 @@ void forwardAutonomous(double distance) {
     RightMotorOne.setVelocity(20, velocityUnits::pct);
     LeftMotorTwo.setVelocity(20, velocityUnits::pct);
     RightMotorTwo.setVelocity(20, velocityUnits::pct);
-    //Converts linear distance to rotations of the wheel using formula
-    //Then, rotates wheels accordingly
     LeftMotorOne.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotorOne.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
@@ -73,22 +71,21 @@ void climb() {
     RightMotorOne.setVelocity(50, velocityUnits::pct);
     LeftMotorTwo.setVelocity(50, velocityUnits::pct);
     RightMotorTwo.setVelocity(50, velocityUnits::pct);
-    //Drives forward 45 inches at 50 % speed
     LeftMotorOne.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotorOne.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
     RightMotorTwo.rotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
 }
-void flip_autonomous() {
-    Flipper.stop();
+void flip_helper(double amount) {
     Flipper.setVelocity(30, velocityUnits::pct);
-    Flipper.rotateFor(90, rotationUnits::deg);
+    Flipper.rotateFor(amount, rotationUnits::deg);
     Flipper.stop(brakeType::hold);
 }
+void flip_autonomous() {
+    flip_helper(110);
+}
 void unflip_autonomous() {
-    Flipper.setVelocity(30, velocityUnits::pct);
-    Flipper.rotateFor(-90, rotationUnits::deg);
-    Flipper.stop(brakeType::hold);
+    flip_helper(-90);
 }
 void halt() {
     LeftLift.stop(brakeType::hold);
@@ -98,8 +95,8 @@ void lift_helper(double height) {
     halt();
     LeftLift.setVelocity(80, velocityUnits::pct);
     RightLift.setVelocity(80, velocityUnits::pct);
-    LeftLift.startRotateTo(height, rotationUnits::deg);
-    RightLift.startRotateTo(-height, rotationUnits::deg);
+    LeftLift.startRotateTo(-height, rotationUnits::deg);
+    RightLift.startRotateTo(height, rotationUnits::deg);
 }
 void high_post_autonomous() {
     lift_helper(4000);
@@ -131,27 +128,17 @@ void serialTank() {
     }
 }*/
 
+void place_ball() {
+    TopIntake.spin(directionType::rev, 50, velocityUnits::pct);
+}
 void shoot_autonomous() {
-    FlyWheelMotor.spin(directionType::rev, 10, velocityUnits::pct);
-    BottomIntake.spin(directionType::fwd, 10, velocityUnits::pct);
-    vex::task::sleep(200);
-    FlyWheelMotor.stop();
-    BottomIntake.stop();
-    /*
-    if (Running.pressing()) {
-        while (receiveSerial()) {
-            serialTank();
-        }
-    }*/
-    FlyWheelMotor.spin(directionType::fwd, 100, velocityUnits::pct);
-    while(FlyWheelMotor.velocity(velocityUnits::pct) < 95) {
+    //calculatePower(getDistance());
+    FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
+    while (FlyWheelMotor.velocity(velocityUnits::pct) > -95) {
         continue;
     }
-    if(FlyWheelMotor.velocity(velocityUnits::pct)>= 95) {
-        BottomIntake.spin(directionType::rev, 50, velocityUnits::pct);
-    }
-    vex::task::sleep(300);
-    unshoot();
+    place_ball();
+    vex::task::sleep(2000);
 }
 
 void turninplaceAutonomous(double degrees) {
@@ -160,9 +147,6 @@ void turninplaceAutonomous(double degrees) {
     RightMotorOne.setVelocity(20, velocityUnits::pct);
     LeftMotorTwo.setVelocity(20, velocityUnits::pct);
     RightMotorTwo.setVelocity(20, velocityUnits::pct);
-    //Creates an imaginary circle that is the circle of rotation
-    //that the robot would rotate in. Calculates the circumference of that
-    //circle and rotates the motors that number of degrees
     LeftMotorOne.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
     RightMotorOne.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
@@ -170,9 +154,6 @@ void turninplaceAutonomous(double degrees) {
     autonomousActive = false;
 }
 
-void place_ball() {
-    TopIntake.spin(directionType::rev, 50, velocityUnits::pct);
-}
 void place_ball_autonomous() {
     TopIntake.spin(directionType::rev, 100, velocityUnits::pct);
 }
@@ -224,10 +205,35 @@ void maintain_flip() {
 }
 
 void autonomous( void ) {
-    int team = 1;//1 for red, -1 for blue
+    int team = -1;//1 for red, -1 for blue
+    /*
+    intake();
+    forwardAutonomous(44);
+    forwardAutonomous(-13);
+    turninplaceAutonomous(-180 * team);
+    unflip_autonomous();
+    unflip_autonomous();
+    forwardAutonomous(-13);
+    flip_helper(40);
+    //lift_helper(200);
+    //vex::task::sleep(500);
+    stop_intake();
+    turninplaceAutonomous(180 * team);
+    high_post_autonomous();
+    forwardAutonomous(-(44 - 4));
+    turninplaceAutonomous(-90 * team);
+    forwardAutonomous(-(23.5/2.0));
+    turninplaceAutonomous(90 * team);
+    forwardAutonomous(-(2));
+    lift_helper(1500);
+    flip_helper(-30);
+    vex::task::sleep(3000);
+    flip_helper(-10);
+    forwardAutonomous(2);
+    floor_autonomous();
+    forwardAutonomous(20);*/
     spin_up();
     forwardAutonomous(29);
-    //turninplaceAutonomous(360);
     shoot_autonomous();
 
     unflip_autonomous();
@@ -251,25 +257,6 @@ void autonomous( void ) {
     lift_helper(2500);
     unflip_autonomous();
     forwardAutonomous(4.25);
-    turninplaceAutonomous(-90 * team);
-    floor_autonomous();
-    forwardAutonomous(59.75);
-
-    turninplaceAutonomous( 45 * team);
-    forwardAutonomous(13);
-    //Start of robot skills. BE SURE TO COMMENT OUT DURING COMPETITION
-    /*
-    forwardAutonomous(6);
-    turninplaceAutonomous(-90 * team);
-    forwardAutonomous(12);
-    turninplaceAutonomous(-90);
-    forwardAutonomous(52);
-    turninplaceAutonomous(-90 * team);
-    forwardAutonomous(18);
-    forwardAutonomous(-4);
-    turninplaceAutonomous(-90 * team);
-    */
-    //End of robot skills
 
 }
 /*----------------------------------------------------------------------------*/
@@ -282,22 +269,10 @@ void autonomous( void ) {
 /*  You must modify the code to add your own robot specific commands here.    */
 /*----------------------------------------------------------------------------*/
 void activate_motors(double angularPower, double linearPower){
-    //When the motors are low power, just convert to 10.
-    //This creates a dead zone and prevents drifting
-    if (abs(linearPower) < 10) {
-        linearPower = 0;
-    }
-    if (abs(angularPower) < 10) {
-        angularPower = 0;
-    }
-    //Sets both motors to the linear power. Then, adjusts
-    //speed of left and right motors based off angular amount
     double rightPwm = linearPower;
     double leftPwm = linearPower;
     leftPwm -= angularPower;
     rightPwm += angularPower;
-    //If power is greater than 100% for a side, just set to 100% and change
-    //other side accordingly
     if (leftPwm > 100){
         rightPwm -= leftPwm - 100;
         leftPwm = 100;
@@ -314,7 +289,6 @@ void activate_motors(double angularPower, double linearPower){
         leftPwm += -100 - rightPwm;
         rightPwm = -100;
     }
-    //Spins the motors the right direction at the calculated power
     if (leftPwm < 0) {
         LeftMotorOne.spin(directionType::rev, - leftPwm, velocityUnits::pct);
         LeftMotorTwo.spin(directionType::rev, - leftPwm, velocityUnits::pct);
@@ -335,15 +309,17 @@ void activate_motors(double angularPower, double linearPower){
 void driveNormal(){
     if (autonomousActive == false){
         double SENSITIVITY_CONSTANT = -0.35;
-        //When r1 is pressed, turns become faster so can do sudden turns
         if (Controller1.ButtonR1.pressing()) {
             SENSITIVITY_CONSTANT = -1;
         }
-        //Calculate forward power based off direction
         double linearPower = Controller1.Axis3.position(percentUnits::pct) * direction;
-        //Multiply angular power by SENSITIVITY_CONSTANT so that it's possible
-        //to change how fast robot turns
         double angularPower = Controller1.Axis1.value() * SENSITIVITY_CONSTANT;
+        if (abs(linearPower) < 10) {
+            linearPower = 0;
+        }
+        if (abs(angularPower) < 1) {
+            angularPower = 0;
+        }
         activate_motors(angularPower, linearPower);
     }
 }
@@ -441,7 +417,7 @@ void flip() {
         } else if (Controller2.ButtonLeft.pressing()) {
             power = (flipperStartPosition - Flipper.rotation(rotationUnits::deg))/1.4;
         } else if (Controller2.ButtonRight.pressing()) {
-            power = (flipperStartPosition + 105 - Flipper.rotation(rotationUnits::deg))/1.2;
+            power = (flipperStartPosition + 115 - Flipper.rotation(rotationUnits::deg))/1.2;
         }
           if (abs(power) < 10) {
             maintain_flip();

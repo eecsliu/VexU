@@ -42,7 +42,7 @@ void pre_auton( void ) {
 bool autonomousActive = false;
 const double wheelDiameter = 4;
 const double wheelCircumference = wheelDiameter * M_PI;
-const double robotWidth = 11.25 * (360.0 / 340.56);
+const double robotWidth = (11.25 * (360.0 / 339.56)) * (357.65 / 360);
 bool driveType = false;
 void forwardAutonomous(double distance) {
     autonomousActive = true;
@@ -293,6 +293,55 @@ void lower() {
     RightLift.spin(directionType::fwd,80,velocityUnits::pct);
 }
 */
+void robot_skills() {
+    spin_up();
+    forwardAutonomous(23.75);
+    turninplaceAutonomous(5);
+    shoot_autonomous();
+    turninplaceAutonomous(-5);
+    forwardAutonomous(21);
+    unshoot();
+    forwardAutonomous(-(23.75 + 21 + 4.5));
+    turninplaceAutonomous(90);
+    intake();
+    forwardAutonomous(47);
+    turninplaceAutonomous(-90);
+    spin_up();
+    forwardAutonomous(4.5 + 23.75);
+    turninplaceAutonomous(5);
+    shoot_autonomous();
+    turninplaceAutonomous(-5);
+    forwardAutonomous(21);
+    unshoot();
+    intake();
+    forwardAutonomous(-21);
+    turninplaceAutonomous(90);
+    forwardAutonomous(23.75 * 1.5);
+    turninplaceAutonomous(90);
+    forwardAutonomous(23.75 + 6.5);
+    turninplaceAutonomous(90);
+    forwardAutonomous(10);
+    forwardAutonomous(-10);
+    turninplaceAutonomous(90);
+    forwardAutonomous(23.75);
+    turninplaceAutonomous(90);
+    forwardAutonomous((23.75 * .5)+4);
+    turninplaceAutonomous(-90);
+    spin_up();
+    forwardAutonomous(6.5);
+    turninplaceAutonomous(5);
+    shoot_autonomous();
+    turninplaceAutonomous(-5);
+    forwardAutonomous(21);
+    unshoot();
+    intake();
+    forwardAutonomous(-(21+4.5+11.5));
+    turninplaceAutonomous(-90);
+    forwardAutonomous(2.5 * 23.75 + 4);
+    turninplaceAutonomous(-90);
+    climb();
+}
+
 void autonomous( void ) {
   // ..........................................................................
   // Insert autonomous user code here.
@@ -321,6 +370,7 @@ void autonomous( void ) {
     unshoot();
     forwardAutonomous(25);
     climb();
+    //robot_skills();
 }
 
 /*----------------------------------------------------------------------------*/
@@ -397,5 +447,4 @@ int main() {
     while(1) {
       vex::task::sleep(100);//Sleep the task for a short amount of time to prevent wasted resources.
     }
-
 }
