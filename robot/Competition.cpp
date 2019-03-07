@@ -28,6 +28,10 @@ void pre_auton( void ) {
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
   //flipperStartPosition = Flipper.rotation(rotationUnits::deg)-180;
+    LeftMotor.setTimeout(10, timeUnits::sec);
+    LeftMotor2.setTimeout(10, timeUnits::sec);
+    RightMotor.setTimeout(10, timeUnits::sec);
+    RightMotor2.setTimeout(10, timeUnits::sec);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -296,9 +300,9 @@ void lower() {
 void robot_skills() {
     spin_up();
     forwardAutonomous(23.75);
-    turninplaceAutonomous(5);
+    turninplaceAutonomous(10);
     shoot_autonomous();
-    turninplaceAutonomous(-5);
+    turninplaceAutonomous(-10);
     forwardAutonomous(21);
     unshoot();
     forwardAutonomous(-(23.75 + 21 + 4.5));
@@ -308,9 +312,9 @@ void robot_skills() {
     turninplaceAutonomous(-90);
     spin_up();
     forwardAutonomous(4.5 + 23.75);
-    turninplaceAutonomous(5);
+    turninplaceAutonomous(10);
     shoot_autonomous();
-    turninplaceAutonomous(-5);
+    turninplaceAutonomous(-10);
     forwardAutonomous(21);
     unshoot();
     intake();
@@ -329,9 +333,9 @@ void robot_skills() {
     turninplaceAutonomous(-90);
     spin_up();
     forwardAutonomous(6.5);
-    turninplaceAutonomous(5);
+    turninplaceAutonomous(10);
     shoot_autonomous();
-    turninplaceAutonomous(-5);
+    turninplaceAutonomous(-10);
     forwardAutonomous(21);
     unshoot();
     intake();
@@ -346,12 +350,12 @@ void autonomous( void ) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-    int team = 1; //1 for red, -1 for blue
+    int team = -1; //1 for red, -1 for blue
     spin_up();
     forwardAutonomous(23.5);
-    turninplaceAutonomous(5 * team);
+    turninplaceAutonomous(10 * team);
     shoot_autonomous();
-    turninplaceAutonomous(-5 * team);
+    turninplaceAutonomous(-10 * team);
     forwardAutonomous(21);
     unshoot();
     forwardAutonomous(-(23.5 + 21 + 4.5));
