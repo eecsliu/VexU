@@ -4,21 +4,21 @@ import frame_convert2
 import numpy as np
 import shapedetector
 from scipy.spatial import distance as dist
-import RPi.GPIO as GPIO            # import RPi.GPIO module  
+#import RPi.GPIO as GPIO            # import RPi.GPIO module  
 from time import sleep
 #from imutils import perspective
 #from imutils import contours
 #import imutils
 
-GPIO.setmode(GPIO.BCM)
+#GPIO.setmode(GPIO.BCM)
 FORWARD = 8
 BACKWARD = 18
 LEFT = 22
 RIGHT = 23
-GPIO.setup(FORWARD, GPIO.OUT)
-GPIO.setup(BACKWARD, GPIO.OUT)
-GPIO.setup(LEFT, GPIO.OUT)
-GPIO.setup(RIGHT, GPIO.OUT)
+#GPIO.setup(FORWARD, GPIO.OUT)
+#GPIO.setup(BACKWARD, GPIO.OUT)
+#GPIO.setup(LEFT, GPIO.OUT)
+#GPIO.setup(RIGHT, GPIO.OUT)
 
 keep_running = True
 red = True
@@ -27,7 +27,7 @@ avg = []
 size = 5
 
 def displayRedOrBlue(dev, data, timestamp):
-        GPIO.output(FORWARD, 1)
+        #GPIO.output(FORWARD, 1)
             
         global keep_running
         global red
@@ -82,10 +82,11 @@ def displayRedOrBlue(dev, data, timestamp):
                 num = x
 	
         rect = cv2.minAreaRect(cnts[num])
-        box = cv2.cv.BoxPoints(rect)
+        box = cv2.boxPoints(rect)
         box = np.int0(box)
         avg.append(midpoint(box[0],box[2]))
-        print(np.sum(avg)/size)
+        print(np.sum(np.array(avg), axis=0)/size)
+        print(np.array(avg))
         if len(avg) >= size:
                 avg.pop(0)
         #cv2.drawContours(output,[box],0,(0,0,255),2) 
