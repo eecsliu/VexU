@@ -28,10 +28,10 @@ void pre_auton( void ) {
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
   //flipperStartPosition = Flipper.rotation(rotationUnits::deg)-180;
-    LeftMotor.setTimeout(10, timeUnits::sec);
-    LeftMotor2.setTimeout(10, timeUnits::sec);
-    RightMotor.setTimeout(10, timeUnits::sec);
-    RightMotor2.setTimeout(10, timeUnits::sec);
+    LeftMotorOne.setTimeout(10, timeUnits::sec);
+    LeftMotorTwo.setTimeout(10, timeUnits::sec);
+    RightMotorOne.setTimeout(10, timeUnits::sec);
+    RightMotorTwo.setTimeout(10, timeUnits::sec);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -46,67 +46,85 @@ void pre_auton( void ) {
 bool autonomousActive = false;
 const double wheelDiameter = 4;
 const double wheelCircumference = wheelDiameter * M_PI;
-const double robotWidthPos = ((11.25 * (360.0 / 339.56)) * (357.65 / 360))* ((3600 + 9.8742689841187) / 3600) * (3605.527/3600.0);
+const double robotWidthPos = 11.9000847212;
+const double convertDegrees = (360) / (2 * M_PI);
+const double convertRadians = 1 / convertDegrees;
+bool team = 1; //1 is red, -1 for blue
+double xPosition = 0;
+double yPosition = 0;
+double orientation = 0;
 bool driveType = false;
+
 void forwardAutonomous(double distance, double speed) {
-    autonomousActive = true;
-    LeftMotor.setVelocity(speed, velocityUnits::pct);
-    LeftMotor2.setVelocity(speed, velocityUnits::pct);
-    RightMotor.setVelocity(speed, velocityUnits::pct);
-    RightMotor2.setVelocity(speed, velocityUnits::pct);
+    LeftMotorOne.setVelocity(speed, velocityUnits::pct);
+    LeftMotorTwo.setVelocity(speed, velocityUnits::pct);
+    RightMotorOne.setVelocity(speed, velocityUnits::pct);
+    RightMotorTwo.setVelocity(speed, velocityUnits::pct);
     //Converts linear distance to rotations of the wheel using formula
     //Then, rotates wheels accordingly
-    LeftMotor.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
-    LeftMotor2.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
-    RightMotor.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
-    RightMotor2.rotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
-    autonomousActive = false;
+    double rotations = 360 * distance / wheelCircumference;
+    LeftMotorOne.startRotateFor(rotations, rotationUnits::deg);
+    LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
+    RightMotorOne.startRotateFor(-rotations, rotationUnits::deg);
+    RightMotorTwo.rotateFor(-rotations, rotationUnits::deg);
+    xPosition += sin(orientation * convertRadians) * distance;
+    yPosition += cos(orientation * convertRadians) * distance;
+}
+void forwardAutonomous (double distance) {
+  forwardAutonomous(distance, 30);
 }
 
 void turninplaceAutonomous(double degrees) {
-    autonomousActive = true;
-    LeftMotor.setVelocity(30, velocityUnits::pct);
-    LeftMotor2.setVelocity(30, velocityUnits::pct);
-    RightMotor.setVelocity(30, velocityUnits::pct);
-    RightMotor2.setVelocity(30, velocityUnits::pct);
+    LeftMotorOne.setVelocity(30, velocityUnits::pct);
+    LeftMotorTwo.setVelocity(30, velocityUnits::pct);
+    RightMotorOne.setVelocity(30, velocityUnits::pct);
+    RightMotorTwo.setVelocity(30, velocityUnits::pct);
     double robotWidth = robotWidthPos;
-    if(degrees < 0.0) {
-        robotWidth = robotWidth * (3600 + 9.27)/3600 * (3600 - 3.7)/3600;
-        Controller1.Screen.print("Neg");
-    }
-    else {
-        Controller1.Screen.print("Pos");
-    }
     //Creates an imaginary circle that is the circle of rotation
     //that the robot would rotate in. Calculates the circumference of that
     //circle and rotates the motors that number of degrees
-    LeftMotor.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    LeftMotor2.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    RightMotor.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    RightMotor2.rotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    autonomousActive = false;
+    double rotations = degrees * robotWidth * team / wheelDiameter;
+    LeftMotorOne.startRotateFor(rotations, rotationUnits::deg);
+    LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
+    RightMotorOne.startRotateFor(rotations, rotationUnits::deg);
+    RightMotorTwo.rotateFor(rotations, rotationUnits::deg);
+    orientation += degrees;
+    orientation = fmod(orientation, 360);
 }
-
+void rotateTo(double degrees) {
+  turninplaceAutonomous(degrees - orientation);
+  orientation = degrees;
+}
+void goTo(double x, double y) {
+  double xDelta = x - xPosition;
+  double yDelta = y - yPosition;
+  rotateTo(atan(xDelta/yDelta) * convertDegrees);
+  forwardAutonomous(sqrt(xDelta * xDelta + (yDelta * yDelta)));
+}
+void goTo(double x, double y, double degrees) {
+  goTo(x, y);
+  rotateTo(degrees);
+}
 void climb() {
-    LeftMotor.setVelocity(100, velocityUnits::pct);
-    RightMotor.setVelocity(100, velocityUnits::pct);
-    LeftMotor2.setVelocity(100, velocityUnits::pct);
-    RightMotor2.setVelocity(100, velocityUnits::pct);
+    LeftMotorOne.setVelocity(100, velocityUnits::pct);
+    RightMotorOne.setVelocity(100, velocityUnits::pct);
+    LeftMotorTwo.setVelocity(100, velocityUnits::pct);
+    RightMotorTwo.setVelocity(100, velocityUnits::pct);
     //Drives forward 45 inches at 50 % speed
-    LeftMotor.spin(directionType::rev);
-    LeftMotor2.spin(directionType::rev);
-    RightMotor.spin(directionType::fwd);
-    RightMotor2.spin(directionType::fwd);
+    LeftMotorOne.spin(directionType::rev);
+    LeftMotorTwo.spin(directionType::rev);
+    RightMotorOne.spin(directionType::fwd);
+    RightMotorTwo.spin(directionType::fwd);
     Hammer.setVelocity(90, velocityUnits::pct);
     Hammer.rotateTo(-800, rotationUnits::deg);
     vex::task::sleep(300);
     Hammer.rotateTo(-500, rotationUnits::deg);
     Hammer.rotateTo(-800, rotationUnits::deg);
     vex::task::sleep(860);
-    LeftMotor.stop(brakeType::hold);
-    LeftMotor2.stop(brakeType::hold);
-    RightMotor.stop(brakeType::hold);
-    RightMotor2.stop(brakeType::hold);
+    LeftMotorOne.stop(brakeType::hold);
+    LeftMotorTwo.stop(brakeType::hold);
+    RightMotorOne.stop(brakeType::hold);
+    RightMotorTwo.stop(brakeType::hold);
 }
 
 void activate_motors(double angularPower, double linearPower){
@@ -144,21 +162,21 @@ void activate_motors(double angularPower, double linearPower){
     }
     //Spins the motors the right direction at the calculated power
     if (leftPwm < 0){
-        LeftMotor.spin(directionType::rev, - leftPwm, velocityUnits::pct);
-        LeftMotor2.spin(directionType::rev, - leftPwm, velocityUnits::pct);
+        LeftMotorOne.spin(directionType::rev, - leftPwm, velocityUnits::pct);
+        LeftMotorTwo.spin(directionType::rev, - leftPwm, velocityUnits::pct);
     }
     else{
-        LeftMotor.spin(directionType::fwd, leftPwm, velocityUnits::pct);
-        LeftMotor2.spin(directionType::fwd, leftPwm, velocityUnits::pct);
+        LeftMotorOne.spin(directionType::fwd, leftPwm, velocityUnits::pct);
+        LeftMotorTwo.spin(directionType::fwd, leftPwm, velocityUnits::pct);
     }
     if (rightPwm < 0){
-        RightMotor.spin(directionType::fwd, -rightPwm, velocityUnits::pct);
-        RightMotor2.spin(directionType::fwd, -rightPwm, velocityUnits::pct);
+        RightMotorOne.spin(directionType::fwd, -rightPwm, velocityUnits::pct);
+        RightMotorTwo.spin(directionType::fwd, -rightPwm, velocityUnits::pct);
 
     }
     else{
-        RightMotor.spin(directionType::rev, rightPwm, velocityUnits::pct);
-        RightMotor2.spin(directionType::rev, rightPwm, velocityUnits::pct);
+        RightMotorOne.spin(directionType::rev, rightPwm, velocityUnits::pct);
+        RightMotorTwo.spin(directionType::rev, rightPwm, velocityUnits::pct);
     }
 }
 void driveNormal(){
@@ -198,8 +216,10 @@ void stop_intake() {
 }
 void driveTank(){
     if (autonomousActive == false) {
-        LeftMotor.spin(directionType::fwd, Controller1.Axis3.position(percentUnits::pct), velocityUnits::pct);
-        RightMotor.spin(directionType::rev, Controller1.Axis2.position(percentUnits::pct), velocityUnits::pct);
+        LeftMotorOne.spin(directionType::fwd, Controller1.Axis3.position(percentUnits::pct), velocityUnits::pct);
+        LeftMotorTwo.spin(directionType::fwd, Controller1.Axis3.position(percentUnits::pct), velocityUnits::pct);
+        RightMotorOne.spin(directionType::rev, Controller1.Axis2.position(percentUnits::pct), velocityUnits::pct);
+        RightMotorTwo.spin(directionType::rev, Controller1.Axis2.position(percentUnits::pct), velocityUnits::pct);
     }
 }
 void toggleDrive(){
@@ -223,6 +243,9 @@ void place_ball_control() {
     if (Controller1.ButtonR2.pressing()) {
         TopIntake.spin(directionType::rev, 100, velocityUnits::pct);
     }
+}
+void stop_place() {
+  TopIntake.stop();
 }
 void place_ball_autonomous() {
     TopIntake.spin(directionType::rev, 100, velocityUnits::pct);
@@ -252,68 +275,6 @@ void shoot_autonomous() {
     vex::task::sleep(2000);
 }
 
-double max_rotation = 180;
-/*
-void maintain_flip() {
-    Flipper.stop(brakeType::hold);
-}
-
-void flip(){
-    Flipper.spin(directionType::fwd, 30, velocityUnits::pct);
-    while(Flipper.rotation(rotationUnits::deg) < 100 + flipperStartPosition && Controller2.ButtonUp.pressing()) {
-        continue;
-    }
-    Flipper.stop(brakeType::hold);
-}
-
-void flip_autonomous() {
-    Flipper.setVelocity(30, velocityUnits::pct);
-    Flipper.rotateFor(90, rotationUnits::deg);
-    Flipper.stop(brakeType::hold);
-}
-void unflip() {
-    Flipper.spin(directionType::rev, 30, velocityUnits::pct);
-    if(!(Flipper.rotation(rotationUnits::deg) > 5 + flipperStartPosition)) {
-        Flipper.stop(brakeType::hold);
-    }
-}
-void unflip_autonomous() {
-    Flipper.setVelocity(30, velocityUnits::pct);
-    Flipper.rotateFor(-90, rotationUnits::deg);
-    Flipper.stop(brakeType::hold);
-}
-void storage() {
-    Flipper.spin(directionType::fwd, 20, velocityUnits::pct);
-}
-
-void lift(){
-    LeftLift.spin(directionType::fwd,80,velocityUnits::pct);
-    RightLift.spin(directionType::rev,80,velocityUnits::pct);
-}
-void lift_autonomous() {
-    LeftLift.setVelocity(80, velocityUnits::pct);
-    RightLift.setVelocity(80, velocityUnits::pct);
-    LeftLift.startRotateFor(3000, rotationUnits::deg);
-    RightLift.startRotateFor(-3000, rotationUnits::deg);
-}
-void lower_autonomous() {
-    LeftLift.setVelocity(80, velocityUnits::pct);
-    RightLift.setVelocity(80, velocityUnits::pct);
-    LeftLift.startRotateFor(-3000, rotationUnits::deg);
-    RightLift.startRotateFor(3000, rotationUnits::deg);
-    vex::task::sleep(2000);
-}
-void halt() {
-    LeftLift.stop(brakeType::hold);
-    //RightLift.rotateTo(LeftLift.rotation(rotationUnits::deg), rotationUnits::deg);
-    RightLift.stop(brakeType::hold);
-}
-
-void lower() {
-    LeftLift.spin(directionType::rev,80,velocityUnits::pct);
-    RightLift.spin(directionType::fwd,80,velocityUnits::pct);
-}
-*/
 void unjamShooter() {
     TopIntake.spin(directionType::fwd, 50, velocityUnits::pct);
 }
@@ -570,53 +531,31 @@ void usercontrol( void ) {
     // ........................................................................
     
     driveNormal();
-    /*if (driveType == 0){
-        driveNormal();
-    } else {
-        driveTank();
-    }*/
-     /*if (Controller1.ButtonR2.pressing()){
-        if (FlyWheelMotor.velocity(velocityUnits::pct) < -90) {
-              place_ball();
-        }
-      }*/
-      Controller1.ButtonR1.pressed(place_ball_control);
+    Controller1.ButtonR1.pressed(place_ball_control);
+    Controller1.ButtonR1.released(stop_place);
 
-      Controller1.ButtonL2.pressed(reverse_intake);
-      Controller1.ButtonL2.released(stop_intake);
+    Controller1.ButtonL2.pressed(reverse_intake);
+    Controller1.ButtonL2.released(stop_intake);
 
-      Controller1.ButtonUp.pressed(reverse_intake);
-      Controller1.ButtonUp.released(stop_intake);
+    Controller1.ButtonUp.pressed(reverse_intake);
+    Controller1.ButtonUp.released(stop_intake);
 
-      Controller1.ButtonL1.pressed(intake);
-      Controller1.ButtonL1.released(stop_intake);
+    Controller1.ButtonL1.pressed(intake);
+    Controller1.ButtonL1.released(stop_intake);
 
-      Controller1.ButtonR2.pressed(shoot);
-      Controller1.ButtonR2.released(unshoot);
+    Controller1.ButtonR2.pressed(shoot);
+    Controller1.ButtonR2.released(unshoot);
 
-      Controller1.ButtonA.pressed(unjamShooter);
-      Controller1.ButtonA.released(stopUnjam);
+    Controller1.ButtonA.pressed(unjamShooter);
+    Controller1.ButtonA.released(stopUnjam);
 
     if (Controller1.ButtonX.pressing()) {
-        Hammer.spin(directionType::fwd, 80, velocityUnits::pct);
+      Hammer.spin(directionType::fwd, 80, velocityUnits::pct);
     } else if (Controller1.ButtonB.pressing()) {
-        Hammer.spin(directionType::rev, 80, velocityUnits::pct);
+      Hammer.spin(directionType::rev, 80, velocityUnits::pct);
     } else {
-        Hammer.stop(brakeType::hold);
+      Hammer.stop(brakeType::hold);
     }
-    /*
-    Controller2.ButtonX.pressed(storage);
-    Controller2.ButtonX.released(maintain_flip);
-    Controller2.ButtonA.pressed(lift);
-    Controller2.ButtonA.released(halt);
-    Controller1.ButtonB.pressed(toggleDrive);
-    Controller1.ButtonB.released(toggleNull) ;
-    Controller1.ButtonUp.pressed(flip);
-    Controller1.ButtonUp.released(maintain_flip);
-    Controller1.ButtonDown.pressed(unflip);
-    Controller1.ButtonDown.released(maintain_flip);
-    vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources.
-    */
   }
 }
 

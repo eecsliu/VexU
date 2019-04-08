@@ -48,22 +48,64 @@ void unshoot() {
 bool autonomousActive = false;
 const double wheelDiameter = 4;
 const double wheelCircumference = wheelDiameter * M_PI;
-const double robotWidth = (11.25 * (360.0 / 339.56)) * (357.65 / 360) * (362.535/360);
+const double robotWidthPos = 11.9327809104;
+const double convertDegrees = (360) / (2 * M_PI);
+const double convertRadians = 1 / convertDegrees;
+bool team = 1; //1 is red, -1 for blue
+double xPosition = 0;
+double yPosition = 0;
+double orientation = 0;
 bool driveType = false;
-void forwardAutonomous(double distance) {
-    autonomousActive = true;
-    LeftMotorOne.setVelocity(20, velocityUnits::pct);
-    RightMotorOne.setVelocity(20, velocityUnits::pct);
-    LeftMotorTwo.setVelocity(20, velocityUnits::pct);
-    RightMotorTwo.setVelocity(20, velocityUnits::pct);
-    LeftMotorOne.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
-    LeftMotorTwo.startRotateFor(360 * distance / wheelCircumference, rotationUnits::deg);
-    RightMotorOne.startRotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
-    RightMotorTwo.rotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
-    autonomousActive = false;
-    vex::task::sleep(300);
-    //vexGenericSerialEnable( vex::PORT18, 0 );
-    //https://www.vexforum.com/index.php/34239-vex-u?search=serial
+
+void forwardAutonomous(double distance, double speed) {
+    LeftMotorOne.setVelocity(speed, velocityUnits::pct);
+    LeftMotorTwo.setVelocity(speed, velocityUnits::pct);
+    RightMotorOne.setVelocity(speed, velocityUnits::pct);
+    RightMotorTwo.setVelocity(speed, velocityUnits::pct);
+    //Converts linear distance to rotations of the wheel using formula
+    //Then, rotates wheels accordingly
+    double rotations = 360 * distance / wheelCircumference;
+    LeftMotorOne.startRotateFor(rotations, rotationUnits::deg);
+    LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
+    RightMotorOne.startRotateFor(-rotations, rotationUnits::deg);
+    RightMotorTwo.rotateFor(-rotations, rotationUnits::deg);
+    xPosition += sin(orientation * convertRadians) * distance;
+    yPosition += cos(orientation * convertRadians) * distance;
+}
+void forwardAutonomous (double distance) {
+  forwardAutonomous(distance, 30);
+}
+
+void turninplaceAutonomous(double degrees) {
+    LeftMotorOne.setVelocity(30, velocityUnits::pct);
+    LeftMotorTwo.setVelocity(30, velocityUnits::pct);
+    RightMotorOne.setVelocity(30, velocityUnits::pct);
+    RightMotorTwo.setVelocity(30, velocityUnits::pct);
+    double robotWidth = robotWidthPos;
+    //Creates an imaginary circle that is the circle of rotation
+    //that the robot would rotate in. Calculates the circumference of that
+    //circle and rotates the motors that number of degrees
+    double rotations = degrees * robotWidth * team / wheelDiameter;
+    LeftMotorOne.startRotateFor(rotations, rotationUnits::deg);
+    LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
+    RightMotorOne.startRotateFor(rotations, rotationUnits::deg);
+    RightMotorTwo.rotateFor(rotations, rotationUnits::deg);
+    orientation += degrees;
+    orientation = fmod(orientation, 360);
+}
+void rotateTo(double degrees) {
+  turninplaceAutonomous(degrees - orientation);
+  orientation = degrees;
+}
+void goTo(double x, double y) {
+  double xDelta = x - xPosition;
+  double yDelta = y - yPosition;
+  rotateTo(atan(xDelta/yDelta) * convertDegrees);
+  forwardAutonomous(sqrt(xDelta * xDelta + (yDelta * yDelta)));
+}
+void goTo(double x, double y, double degrees) {
+  goTo(x, y);
+  rotateTo(degrees);
 }
 void climb() {
     double distance = 45;
@@ -141,19 +183,6 @@ void shoot_autonomous() {
     vex::task::sleep(2000);
 }
 
-void turninplaceAutonomous(double degrees) {
-    autonomousActive = true;
-    LeftMotorOne.setVelocity(20, velocityUnits::pct);
-    RightMotorOne.setVelocity(20, velocityUnits::pct);
-    LeftMotorTwo.setVelocity(20, velocityUnits::pct);
-    RightMotorTwo.setVelocity(20, velocityUnits::pct);
-    LeftMotorOne.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    LeftMotorTwo.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    RightMotorOne.startRotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    RightMotorTwo.rotateFor(degrees * robotWidth / wheelDiameter, rotationUnits::deg);
-    autonomousActive = false;
-}
-
 void place_ball_autonomous() {
     TopIntake.spin(directionType::rev, 100, velocityUnits::pct);
 }
@@ -205,7 +234,6 @@ void maintain_flip() {
 }
 
 void autonomous( void ) {
-    int team = -1;//1 for red, -1 for blue
     /*
     intake();
     forwardAutonomous(44);
@@ -232,6 +260,8 @@ void autonomous( void ) {
     forwardAutonomous(2);
     floor_autonomous();
     forwardAutonomous(20);*/
+    goTo(10, 10);
+    /*
     spin_up();
     forwardAutonomous(29);
     shoot_autonomous();
@@ -256,7 +286,7 @@ void autonomous( void ) {
 
     lift_helper(2500);
     unflip_autonomous();
-    forwardAutonomous(4.25);
+    forwardAutonomous(4.25);*/
 
 }
 /*----------------------------------------------------------------------------*/
