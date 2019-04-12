@@ -1,4 +1,9 @@
-#include "main.h"
+#include "../include/main.h"
+
+/**
+ * Define all of the motors for TELLY
+ */
+pros::Motor left_motor (11);
 
 void on_center_button() {
 	static bool pressed = false;
