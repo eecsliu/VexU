@@ -467,7 +467,7 @@ void shoot(){
     FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
     intake();
 }
-
+int counter = 0;
 void usercontrol( void ) {
   // User control code here, inside the loop
   while (1){
@@ -515,6 +515,11 @@ void usercontrol( void ) {
       Controller2.ButtonL1.pressed(spin_up);
       Controller2.ButtonL1.released(unspin_up);
       
+      counter++;
+      if (counter % 10 == 0) {
+        counter = 1;
+        Controller1.Screen.print(-FlyWheelMotor.velocity(velocityUnits::rpm));
+      }
     vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources.
   }
 }

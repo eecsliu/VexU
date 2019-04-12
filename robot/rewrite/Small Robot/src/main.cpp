@@ -232,7 +232,8 @@ void toggleNull() {
 }
 
 void unshoot() {
-    FlyWheelMotor.stop();
+    FlyWheelMotorOne.stop();
+    FlyWheelMotorTwo.stop();
     TopIntake.stop();
     stop_intake();
 }
@@ -255,21 +256,25 @@ void place_ball_autonomous() {
     unshoot();
 }
 void spin_up() {
-    FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorOne.spin(directionType::rev, 600, velocityUnits::rpm);
+    FlyWheelMotorTwo.spin(directionType::rev, 600, velocityUnits::rpm);
 }
 void unspin_up() {
-    FlyWheelMotor.stop();
+    FlyWheelMotorOne.stop();
+    FlyWheelMotorTwo.stop();
 }
 
 void shoot(){
     //calculatePower(getDistance());
     //calculatePower(getDistance());
-    FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
     intake();
 }
 void shoot_autonomous() {
     //calculatePower(getDistance());
-    FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
     //vex::task::sleep(1000);
     place_ball();
     vex::task::sleep(2000);
@@ -516,7 +521,7 @@ void autonomous( void ) {
 /*                                                                            */
 /*  You must modify the code to add your own robot specific commands here.    */
 /*----------------------------------------------------------------------------*/
-
+int counter = 0;
 void usercontrol( void ) {
   // User control code here, inside the loop
   autonomousActive = false;
@@ -555,6 +560,11 @@ void usercontrol( void ) {
       Hammer.spin(directionType::rev, 80, velocityUnits::pct);
     } else {
       Hammer.stop(brakeType::hold);
+    }
+    counter++;
+    if (counter % 10 == 0) {
+      counter = 1;
+      Controller1.Screen.print(-FlyWheelMotorOne.velocity(velocityUnits::rpm));
     }
   }
 }
