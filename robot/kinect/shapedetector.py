@@ -1,6 +1,10 @@
 # import the necessary packages
 import cv2
 
+# created a class for shape detection which would find the contours of an image
+# classify the shape of the inputs after a simple contour process
+# did not actually filter using masks
+# was a neccesary next step because of the importance of contours in finding the neccessary images
 class ShapeDetector:
 	def __init__(self):
 		pass

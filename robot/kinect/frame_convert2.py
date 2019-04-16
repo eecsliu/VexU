@@ -1,6 +1,7 @@
 import numpy as np
 
-
+# supporting methods for retrieving video streams in the kinect
+# helped in the adjusting to the learning slope of OpenCV
 def pretty_depth(depth):
     """Converts depth into a 'nicer' format for display
     This is abstracted to allow for experimentation with normalization

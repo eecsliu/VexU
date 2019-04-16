@@ -6,10 +6,12 @@ import shapedetector
 from scipy.spatial import distance as dist
 import RPi.GPIO as GPIO            # import RPi.GPIO module  
 from time import sleep
-#from imutils import perspective
-#from imutils import contours
-#import imutils
 
+# second full attempt at vision processing
+# made substantial progress since the first iteration
+# successful vision processing as well as running average of contours
+
+# code for sending binary signals
 GPIO.setmode(GPIO.BCM)
 FORWARD = 8
 BACKWARD = 18
@@ -23,7 +25,7 @@ GPIO.setup(RIGHT, GPIO.OUT)
 keep_running = True
 red = True
 iter = 0
-avg = []
+avg = [] #used for running average
 size = 5
 
 def displayRedOrBlue(dev, data, timestamp):
@@ -43,15 +45,18 @@ def displayRedOrBlue(dev, data, timestamp):
         lower_red = np.array([170,200,100])
         upper_red = np.array([180,255,255])
         mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
-
+        
+        #blue mask
         lower_blue = np.array([100, 100, 100])
         upper_blue = np.array([170, 255, 255])
         maskBlue = cv2.inRange(img_hsv, lower_blue, upper_blue)
 
+        #yellow mask
         lower_yellow = np.array([15, 0, 0])
         upper_yellow = np.array([60, 255, 255])
         maskYellow = cv2.inRange(img_hsv, lower_yellow, upper_yellow)
 
+        #sum of all masks
         mask = mask0+mask1+maskBlue+maskYellow
 
 
@@ -84,35 +89,40 @@ def displayRedOrBlue(dev, data, timestamp):
         rect = cv2.minAreaRect(cnts[num])
         box = cv2.cv.BoxPoints(rect)
         box = np.int0(box)
+        # adds the average value of the box found to the running list of averages
         avg.append(midpoint(box[0],box[2]))
         print(np.sum(avg)/size)
+        #keeps the average updated by removind old values
         if len(avg) >= size:
                 avg.pop(0)
-        #cv2.drawContours(output,[box],0,(0,0,255),2) 
-        #output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
-        #circles = cv2.HoughCircles(output, cv2.HOUGH_GRADIENT, 1, 50, param1=50,param2=35,minRadius=20,maxRadius=50)
-        #if circles is not None:
-	# convert the (x, y) coordinates and radius of the circles to integers
-        #    circles = np.round(circles[0, :]).astype("int")
+        cv2.drawContours(output,[box],0,(0,0,255),2) 
+        output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
+        circles = cv2.HoughCircles(output, cv2.HOUGH_GRADIENT, 1, 50, param1=50,param2=35,minRadius=20,maxRadius=50)
+        if circles is not None:
+	    # convert the (x, y) coordinates and radius of the circles to integers
+                circles = np.round(circles[0, :]).astype("int")
  
 	# loop over the (x, y) coordinates and radius of the circles
-         #   for (x, y, r) in circles:
-		# draw the circle in the output image, then draw a rectangle
-		# corresponding to the center of the circle
-         #       cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-         #       cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                for (x, y, r) in circles:
+		        # draw the circle in the output image, then draw a rectangle
+		        # corresponding to the center of the circle
+                        cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                        cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
  
-        #cv2.imshow("Line Boi", output)
-        #if cv2.waitKey(10) == 27:
-         #   keep_running = False
+        cv2.imshow("Proccessed Video", output)
+        if cv2.waitKey(10) == 27:
+           keep_running = False
 
+# terminate programming
 def body(*args):
     if not keep_running:
         raise freenect.Kill
-        
+
+# calculates middle point of the box        
 def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
+# gives a visualization for debugging
 freenect.runloop(video=displayRedOrBlue, body=body)
 
 print('Press ESC in window to stop')
