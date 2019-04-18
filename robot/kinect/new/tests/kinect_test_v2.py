@@ -75,7 +75,7 @@ def on_press(key):
         break_program = True
 
 break_program = False
-show_image = False
+show_image = True
 
 cap = cv.VideoCapture(0)
 
