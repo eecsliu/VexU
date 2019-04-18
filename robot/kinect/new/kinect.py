@@ -2,28 +2,28 @@
 import freenect
 import cv2 as cv
 import numpy as np
-import RPi.GPIO as GPIO            # import RPi.GPIO module  
+#import RPi.GPIO as GPIO            # import RPi.GPIO module
 import sys
 import time
- 
+
 avg = []
 size = 3 #5 gives a more smooth and accurate reading but lags slightly behind object
 ready = False
-GPIO.setmode(GPIO.BCM)
+#GPIO.setmode(GPIO.BCM)
 READY = 17
 READY2SHOOT = 18
 LEFT = 22
 RIGHT = 23
-GPIO.setup(READY, GPIO.OUT)
-GPIO.setup(READY2SHOOT, GPIO.OUT)
-GPIO.setup(LEFT, GPIO.OUT)
-GPIO.setup(RIGHT, GPIO.OUT)
- 
+#GPIO.setup(READY, GPIO.OUT)
+#GPIO.setup(READY2SHOOT, GPIO.OUT)
+#GPIO.setup(LEFT, GPIO.OUT)
+#GPIO.setup(RIGHT, GPIO.OUT)
+
 #function to get RGB image from kinect
 def get_video():
     array,_ = freenect.sync_get_video()
     return array
- 
+
 #function to get depth image from kinect
 def get_depth():
     array,_ = freenect.sync_get_depth()
@@ -35,32 +35,33 @@ def midpoint(ptA, ptB):
 
 
 def reset():
-    GPIO.output(READY2SHOOT, 0)
-    GPIO.output(LEFT,0)
-    GPIO.output(RIGHT, 0)
+    #GPIO.output(READY2SHOOT, 0)
+    #GPIO.output(LEFT,0)
+    #GPIO.output(RIGHT, 0)
+    return
 
 def go_ready():
     reset()
-    GPIO.output(READY, 1)
+    #GPIO.output(READY, 1)
 
 def go_shoot():
     reset()
-    GPIO.output(LEFT, 0)
-    GPIO.output(RIGHT, 0)
+    #GPIO.output(LEFT, 0)
+    #GPIO.output(RIGHT, 0)
 
 def go_left():
     reset()
-    GPIO.output(RIGHT, 1)
+    #GPIO.output(RIGHT, 1)
 
 def go_right():
     reset()
-    GPIO.output(LEFT, 1)
+    #GPIO.output(LEFT, 1)
 
 cap = cv.VideoCapture(0)
 
 if __name__ == "__main__":
     start = time.time()
-    x = 0
+    frames = 0
     try:
         while 1:
             #get a frame from RGB camera
@@ -68,15 +69,15 @@ if __name__ == "__main__":
             #get a frame from depth sensor
             #depth = get_depth()
             #GPIO.output(READY, 1)
-            
+
             # lower mask (0-10)
             ret, array = cap.read()
-            if not ret: 
+            if not ret:
                 continue
-            
+
             #frame = np.flip(frame, axis=0) #flipping an image upside down if necessary
             frame = array[:240, :, :]
-            
+
             lower_red = np.array([0,200,100])
             upper_red = np.array([10,255,255])
             img_hsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
@@ -105,7 +106,7 @@ if __name__ == "__main__":
 
             gray = cv.cvtColor(output, cv.COLOR_BGR2GRAY)
             gray = cv.GaussianBlur(gray, (7, 7), 0)
-            
+
 
     # perform edge detection, then perform a dilation + erosion to
     # close gaps in between object edges
@@ -113,24 +114,29 @@ if __name__ == "__main__":
             #edged = cv.dilate(edged, None, iterations=1) #likely don't need erosion and dilation - saves some compute
             #edged = cv.erode(edged, None, iterations=1)
             edged = cv.morphologyEx(edged, cv.MORPH_CLOSE, None)
-     
+
     # find contours in the edge map
-            cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
-            x += 1
+            cnts = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
+            frames += 1
+            # print('this is the number of frames right now: '+str(frames))
+            if cnts == None:
+                continue
+            #print(cnts)
             if not ready:
                 go_ready()
                 ready = True
 
             if len(cnts) != 0:
                 #cnts = imutils.grab_contours(cnts[0])
-                cnt = max(cnts, key = cv.contourArea)
-                
-                
+                #cnt = max(cnts, key = cv.contourArea)
+                cnt = cnts[0]
+
+
                 #M = cv.moments(cnt)
 
                 #cX = int(M["m10"] / M["m00"])
                 #cY = int(M["m01"] / M["m00"])
-     
+
                 x, y, w, h = cv.boundingRect(cnt)
                 avg.append((int(x+w/2), int(y+h/2)))
                 if len(avg) > size:
@@ -141,7 +147,7 @@ if __name__ == "__main__":
                 for each in avg:
                     cX += each[0]/length
                     cY += each[1]/length
-                
+
                 if cX > 360:
                     go_left()
                 elif cX < 280:
@@ -149,27 +155,29 @@ if __name__ == "__main__":
                 else:
                     go_shoot()
                     #cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
-                
+
             #cv.rectangle(array,(x,y),(x+w,y+h),(0,255,0),2)
             #epsilon = 0.1*cv.arcLength(cnt, True)
             #approx = cv.approxPolyDP(cnt, epsilon, True)
             #cv.drawContours(array, cnt, 0, (0, 0, 255), 3)
             # upper mask (170-180)
             #display RGB image
-            #cv.imshow('video',array)
+            cv.imshow('video',array)
             #display depth image
             #cv2.imshow('Depth image',depth)
-     
+
             # quit program when 'esc' key is pressed
             k = cv.waitKey(5) & 0xFF
             if k == 27:
                 break
-        print(x/(time.time() - start))
+        print(frames/(time.time() - start))
         cap.release()
         reset()
         cv.destroyAllWindows()
     except (KeyboardInterrupt):
-        print(x/(time.time() - start))
+        print('this is the number of frames at the end: '+str(frames))
+        print('time.time(): '+str(time.time())+', start: '+str(start)+', time.time() - start: '+str(time.time() - start))
+        print('frames per second: '+str(frames/(time.time() - start)))
         cap.release()
         reset()
         cv.destroyAllWindows()
