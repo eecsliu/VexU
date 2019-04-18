@@ -75,6 +75,7 @@ def on_press(key):
         break_program = True
 
 break_program = False
+show_image = False
 
 cap = cv.VideoCapture(0)
 
@@ -149,7 +150,8 @@ if __name__ == "__main__":
             edged = cv.morphologyEx(edged, cv.MORPH_CLOSE, None)
 
     # find contours in the edge map
-            cnts = cv.findContours(edged.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+            cnts, hier = cv.findContours(edged.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+            #cnts = cv.findContours(edged.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
             framecount += 1
             if not ready:
                 go_ready()
@@ -158,8 +160,8 @@ if __name__ == "__main__":
             if len(cnts) != 0:
                 #cnts = imutils.grab_contours(cnts[0])
                 # Detect largest object
-                #cnt = max(cnts, key = cv.contourArea)
-                cnt = cnts[0]
+                cnt = max(cnts, key = cv.contourArea)
+                #cnt = cnts[0]
 
 
                 #M = cv.moments(cnt)
@@ -172,8 +174,8 @@ if __name__ == "__main__":
                 if len(avg) > size:
                     avg.pop(0)
                 length = len(avg)
-                cX=0
-                cY=0
+                cX = 0
+                cY = 0
                 for each in avg:
                     cX += each[0]/length
                     cY += each[1]/length
@@ -184,24 +186,24 @@ if __name__ == "__main__":
                     go_right()
                 else:
                     go_shoot()
-                    #cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
+                    if show_image:
+                        cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
 
-                #cv.rectangle(array,(x,y),(x+w,y+h),(0,255,0),2)
+                
+                if show_image:
+                    cv.rectangle(array,(x,y),(x+w,y+h),(0,255,0),2)
             #epsilon = 0.1*cv.arcLength(cnt, True)
             #approx = cv.approxPolyDP(cnt, epsilon, True)
             #cv.drawContours(array, cnt, 0, (0, 0, 255), 3)
             # upper mask (170-180)
             #display RGB image
-            cv.imshow('video',array)
+            if show_image:
+                cv.imshow('video',array)
+                cv.waitKey(30)
             #display depth image
             #cv2.imshow('Depth image',depth)
 
             # quit program when 'esc' key is pressed
-            """
-            k = cv.waitKey(5) & 0xFF
-            if k == 27:
-                break
-                """
             if break_program:
                 break
         print(framecount/(time.time() - start))
@@ -209,7 +211,8 @@ if __name__ == "__main__":
         reset()
         cv.destroyAllWindows()
     except (KeyboardInterrupt):
-        print(framecount/(time.time() - start))
+        print('total frame count: '+str(framecount))
+        print('frames per second: '+str(framecount/(time.time() - start)))
         cap.release()
         reset()
         cv.destroyAllWindows()

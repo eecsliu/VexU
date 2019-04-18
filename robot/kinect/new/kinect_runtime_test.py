@@ -109,11 +109,12 @@ if __name__ == "__main__":
             #depth = get_depth()
             #GPIO.output(READY, 1)
 
-            #start2 = time.time()
+            continue
+            start2 = time.time()
             ret, array = cap.read()
             if not ret:
                 continue
-            #functiontime += time.time() - start2
+            functiontime += time.time() - start2
             #test_image = cv.imread('images/red2.jpg')
             #array = test_image
 
@@ -251,9 +252,10 @@ if __name__ == "__main__":
             #approx = cv.approxPolyDP(cnt, epsilon, True)
             #cv.drawContours(array, cnt, 0, (0, 0, 255), 3)
             # upper mask (170-180)
-            #display RGB image
+            # display RGB image
             #framecount += 1
-            cv.imshow('video',array)
+            #cv.imshow('video',array)
+            #cv.waitKey(30)
             #display depth image
             #cv2.imshow('Depth image',depth)
      
@@ -268,11 +270,11 @@ if __name__ == "__main__":
 
             # Test with image, end after one
             iterations += 1
-            #if iterations > totaliterations:
-                #break
+            if iterations > totaliterations:
+                break
         print("Function Time", functiontime)
         print("Total Runtime", time.time() - start)
-        cap.release()
+        #cap.release()
         reset()
         cv.destroyAllWindows()
     except (KeyboardInterrupt):

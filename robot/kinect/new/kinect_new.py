@@ -191,6 +191,7 @@ if __name__ == "__main__":
             # upper mask (170-180)
             #display RGB image
             #cv.imshow('video',array)
+            #cv.waitKey(30)
             #display depth image
             #cv2.imshow('Depth image',depth)
      

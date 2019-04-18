@@ -1,5 +1,5 @@
 #import the necessary modules
-import freenect
+#import freenect
 import cv2 as cv
 import numpy as np
 #import RPi.GPIO as GPIO            # import RPi.GPIO module
@@ -19,6 +19,7 @@ RIGHT = 23
 #GPIO.setup(LEFT, GPIO.OUT)
 #GPIO.setup(RIGHT, GPIO.OUT)
 
+"""
 #function to get RGB image from kinect
 def get_video():
     array,_ = freenect.sync_get_video()
@@ -29,6 +30,7 @@ def get_depth():
     array,_ = freenect.sync_get_depth()
     array = array.astype(np.uint8)
     return array
+"""
 
 def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
@@ -116,7 +118,8 @@ if __name__ == "__main__":
             edged = cv.morphologyEx(edged, cv.MORPH_CLOSE, None)
 
     # find contours in the edge map
-            cnts = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
+            #cnts = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
+            cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
             frames += 1
             # print('this is the number of frames right now: '+str(frames))
             if cnts == None:
@@ -128,8 +131,8 @@ if __name__ == "__main__":
 
             if len(cnts) != 0:
                 #cnts = imutils.grab_contours(cnts[0])
-                #cnt = max(cnts, key = cv.contourArea)
-                cnt = cnts[0]
+                cnt = max(cnts, key = cv.contourArea)
+                #cnt = cnts[0]
 
 
                 #M = cv.moments(cnt)
