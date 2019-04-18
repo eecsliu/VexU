@@ -6,15 +6,6 @@ import numpy as np
 import sys
 import time
 import keyboard
-from threading import Thread
-
-# import the Queue class from Python 3
-if sys.version_info >= (3, 0):
-    from queue import Queue
- 
-# otherwise, import the Queue class for Python 2.7
-else:
-    from Queue import Queue
  
 avg = []
 size = 3 #5 gives a more smooth and accurate reading but lags slightly behind object
@@ -86,7 +77,7 @@ def on_press(key):
 break_program = False
 
 cap = cv.VideoCapture(0)
-        
+
 if __name__ == "__main__":
     def check_key(e):
         event = e.event_type
@@ -97,10 +88,6 @@ if __name__ == "__main__":
     
     start = time.time()
     framecount = 0
-    iterations = 0
-    timings = []
-    totaliterations = 100
-    functiontime = 0
     try:
         while 1:
             #get a frame from RGB camera
@@ -108,18 +95,14 @@ if __name__ == "__main__":
             #get a frame from depth sensor
             #depth = get_depth()
             #GPIO.output(READY, 1)
-
-            #start2 = time.time()
-            ret, array = cap.read()
-            if not ret:
-                continue
-            #functiontime += time.time() - start2
-            #test_image = cv.imread('images/red2.jpg')
-            #array = test_image
-
-            #frame = np.flip(frame, axis=0) #flipping an image upside down if necessary
-            frame = array[:240, :, :]
             
+            # lower mask (0-10)
+            ret, array = cap.read()
+            if not ret: 
+                continue
+            
+            #frame = np.flip(frame, axis=0) #flipping an image upside down if necessary
+            frame = array[:240, :, :]            
             # Convert image color to HSV (hue/saturation/value)
             img_hsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
 
@@ -158,59 +141,16 @@ if __name__ == "__main__":
             gray = cv.GaussianBlur(gray, (7, 7), 0)
             
 
-            # perform edge detection, then perform a dilation + erosion to
-            # close gaps in between object edges
+    # perform edge detection, then perform a dilation + erosion to
+    # close gaps in between object edges
             edged = cv.Canny(gray, 50, 100)
             #edged = cv.dilate(edged, None, iterations=1) #likely don't need erosion and dilation - saves some compute
             #edged = cv.erode(edged, None, iterations=1)
             edged = cv.morphologyEx(edged, cv.MORPH_CLOSE, None)
      
-            # find contours in the edge map
-
-            """
-            ### CHECK RUNTIME
-            iterations = 20000
-
-            # Mode
-            start2 = time.time()
-            for i in range(iterations):
-                cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-            print("RETR_LIST", time.time() - start2)
-            
-            start2 = time.time()
-            for i in range(iterations):
-                cnts, hier = cv.findContours(edged.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-            print("RETR_EXTERNAL", time.time() - start2)
-            
-            start2 = time.time()
-            for i in range(iterations):
-                cnts, hier = cv.findContours(edged.copy(), cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
-            print("RETR_CCOMP", time.time() - start2)
-            
-            start2 = time.time()
-            for i in range(iterations):
-                cnts, hier = cv.findContours(edged.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-            print("RETR_TREE", time.time() - start2)
-
-            # Method
-            start2 = time.time()
-            for i in range(iterations):
-                cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_TC89_L1)
-            print("CHAIN_APPROX_TC89_L1", time.time() - start2)
-            
-            start2 = time.time()
-            for i in range(iterations):
-                cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
-            print("CHAIN_APPROX_NONE", time.time() - start2)
-            
-            start2 = time.time()
-            for i in range(iterations):
-                cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-            print("CHAIN_APPROX_SIMPLE", time.time() - start2)
-            break
-            """
-            #cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
+    # find contours in the edge map
             cnts, hier = cv.findContours(edged.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+            framecount += 1
             if not ready:
                 go_ready()
                 ready = True
@@ -244,15 +184,13 @@ if __name__ == "__main__":
                 else:
                     go_shoot()
                     cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
-
+                
                 cv.rectangle(array,(x,y),(x+w,y+h),(0,255,0),2)
-            #cv.rectangle(array,(x,y),(x+w,y+h),(0,255,0),2)
             #epsilon = 0.1*cv.arcLength(cnt, True)
             #approx = cv.approxPolyDP(cnt, epsilon, True)
             #cv.drawContours(array, cnt, 0, (0, 0, 255), 3)
             # upper mask (170-180)
             #display RGB image
-            #framecount += 1
             cv.imshow('video',array)
             #display depth image
             #cv2.imshow('Depth image',depth)
@@ -265,13 +203,7 @@ if __name__ == "__main__":
                 """
             if break_program:
                 break
-
-            # Test with image, end after one
-            iterations += 1
-            #if iterations > totaliterations:
-                #break
-        print("Function Time", functiontime)
-        print("Total Runtime", time.time() - start)
+        print(framecount/(time.time() - start))
         cap.release()
         reset()
         cv.destroyAllWindows()
