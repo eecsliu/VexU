@@ -1,0 +1,14 @@
+Key detection with cv is very slow:
+- Replace with key listener (using 'keyboard' python library)
+
+Bottleneck is in camera I/O
+- Optimize by threading and storing queue of images
+https://www.pyimagesearch.com/2015/12/21/increasing-webcam-fps-with-python-and-opencv/
+
+Rest of program runs very fast including contour detection. Don't need to optimize further.
+
+Minor speedup:
+- For find contour, use: cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE
+
+Vary hsv values to test best detection
+Target detection (test methods, i.e. max area)

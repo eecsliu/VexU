@@ -1,0 +1,34 @@
+[
+    {
+        "arguments": [
+            "clang++",
+            "-c",
+            "-target",
+            "armv7ar-none-none-eabi",
+            "-isystem/usr/lib/gcc/arm-none-eabi/8.3.0/../../../../arm-none-eabi/include/c++/8.3.0",
+            "-isystem/usr/lib/gcc/arm-none-eabi/8.3.0/../../../../arm-none-eabi/include/c++/8.3.0/arm-none-eabi",
+            "-isystem/usr/lib/gcc/arm-none-eabi/8.3.0/../../../../arm-none-eabi/include/c++/8.3.0/backward",
+            "-isystem/usr/lib/gcc/arm-none-eabi/8.3.0/include",
+            "-isystem/usr/lib/gcc/arm-none-eabi/8.3.0/include-fixed",
+            "-isystem/usr/lib/gcc/arm-none-eabi/8.3.0/../../../../arm-none-eabi/include",
+            "-iquote./include",
+            "-iquote./include/./",
+            "-mcpu=cortex-a9",
+            "-mfpu=neon-fp16",
+            "-mfloat-abi=softfp",
+            "-D_POSIX_THREADS",
+            "-D_UNIX98_THREAD_MUTEX_ATTRIBUTES",
+            "-Os",
+            "-funwind-tables",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fdiagnostics-color",
+            "--std=gnu++17",
+            "-o",
+            "bin/autonomous.cpp.o",
+            "src/autonomous.cpp"
+        ],
+        "directory": "/home/samuel/Documents/Vex/VexU/robot/PROS/Telly",
+        "file": "src/autonomous.cpp"
+    }
+]
