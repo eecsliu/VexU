@@ -1,8 +1,8 @@
 #include "robot-config.h"
+#include "constants.h"
 #define _USE_MATH_DEFINES
 using namespace std;
-#include <list>;
-#include <cmath>        // std::abs
+#include <list>
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
 /*        Description: Competition template for VCS VEX V5                   */
@@ -13,50 +13,25 @@ using namespace std;
 //Creates a competition object that allows access to Competition methods.
 vex::competition    Competition;
 
-/*---------------------------------------------------------------------------*/
-/*                          Pre-Autonomous Functions                         */
-/*                                                                           */
-/*  You may want to perform some actions before the competition starts.      */
-/*  Do them in the following function.  You must return from this function   */
-/*  or the autonomous and usercontrol tasks will not be started.  This       */
-/*  function is only called once after the cortex has been powered on and    */
-/*  not every time that the robot is disabled.                               */
-/*---------------------------------------------------------------------------*/
 double flipperStartPosition;
 double direction = 1;
 void pre_auton( void ) {
-  // All activities that occur before the competition starts
-  // Example: clearing encoders, setting servo positions, ...
   flipperStartPosition = Flipper.rotation(rotationUnits::deg)-180;
 }
 
-/*---------------------------------------------------------------------------*/
-/*                                                                           */
-/*                              Autonomous Task                              */
-/*                                                                           */
-/*  This task is used to control your robot during the autonomous phase of   */
-/*  a VEX Competition.                                                       */
-/*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
-/*---------------------------------------------------------------------------*/
-
 void unshoot() {
-    FlyWheelMotor.stop();
+    FlyWheelMotorOne.stop();
+    FlyWheelMotorTwo.stop();
     TopIntake.stop();
     BottomIntake.stop();
 }
 bool autonomousActive = false;
-const double wheelDiameter = 4;
-const double wheelCircumference = wheelDiameter * M_PI;
-const double robotWidthPos = 11.9327809104;
-const double convertDegrees = (360) / (2 * M_PI);
-const double convertRadians = 1 / convertDegrees;
+
 bool team = 1; //1 is red, -1 for blue
 double xPosition = 0;
 double yPosition = 0;
 double orientation = 0;
 bool driveType = false;
-
 void forwardAutonomous(double distance, double speed) {
     LeftMotorOne.setVelocity(speed, velocityUnits::pct);
     LeftMotorTwo.setVelocity(speed, velocityUnits::pct);
@@ -75,7 +50,6 @@ void forwardAutonomous(double distance, double speed) {
 void forwardAutonomous (double distance) {
   forwardAutonomous(distance, 30);
 }
-
 void turninplaceAutonomous(double degrees) {
     LeftMotorOne.setVelocity(30, velocityUnits::pct);
     LeftMotorTwo.setVelocity(30, velocityUnits::pct);
@@ -150,47 +124,28 @@ void floor_autonomous() {
     halt();
     lift_helper(0);
 }
-/*
-bool receiveSerial() {
-    return !Ready.pressing();
-}
-
-void serialTank() {
-    LeftMotor.setVelocity(20, velocityUnits::pct);
-    RightMotor.setVelocity(20, velocityUnits::pct);
-    if (LeftSerial.pressing()) {
-        LeftMotor.spin(directionType::fwd);
-    }else {
-        LeftMotor.spin(directionType::rev);
-    }
-    if (RightSerial.pressing()) {
-        RightMotor.spin(directionType::rev);
-    }else {
-        RightMotor.spin(directionType::fwd);
-    }
-}*/
-
 void place_ball() {
     TopIntake.spin(directionType::rev, 50, velocityUnits::pct);
 }
 void shoot_autonomous() {
-    //calculatePower(getDistance());
-    FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
-    while (FlyWheelMotor.velocity(velocityUnits::pct) > -95) {
+    FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
+    while (FlyWheelMotorOne.velocity(velocityUnits::pct) > -95) {
         continue;
     }
     place_ball();
     vex::task::sleep(2000);
 }
-
 void place_ball_autonomous() {
     TopIntake.spin(directionType::rev, 100, velocityUnits::pct);
 }
 void spin_up() {
-    FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
 }
 void unspin_up() {
-    FlyWheelMotor.stop();
+    FlyWheelMotorOne.stop();
+    FlyWheelMotorTwo.stop();
 }
 void flipGround() {
     Flipper.startRotateTo(flipperStartPosition, rotationUnits::deg);
@@ -199,40 +154,33 @@ void toggleDrive(){
     driveType = !driveType;
     Controller1.Screen.print(driveType);
 }
-
 void toggleShooterFront() {
     direction = 1;
 }
-
 void toggleLifterFront() {
     direction = -1;
 }
-
 void toggleNull() {
     return;
 }
-
 void unjamShooter() {
     TopIntake.spin(directionType::fwd, 50, velocityUnits::pct);
 }
 void stopUnjam() {
     TopIntake.stop();
 }
-
 void intake(){
     BottomIntake.spin(directionType::rev, 50, velocityUnits::pct);
 }
 void reverse_intake() {
     BottomIntake.spin(directionType::fwd, 100, velocityUnits::pct);
 }
-
 void stop_intake() {
     BottomIntake.stop();
 }
 void maintain_flip() {
     Flipper.stop(brakeType::hold);
 }
-
 void autonomous( void ) {
     /*
     intake();
@@ -289,15 +237,6 @@ void autonomous( void ) {
     forwardAutonomous(4.25);*/
 
 }
-/*----------------------------------------------------------------------------*/
-/*                                                                            */
-/*                              User Control Task                             */
-/*                                                                            */
-/*  This task is used to control your robot during the user control phase of  */
-/*  a VEX Competition.                                                        */
-/*                                                                            */
-/*  You must modify the code to add your own robot specific commands here.    */
-/*----------------------------------------------------------------------------*/
 void activate_motors(double angularPower, double linearPower){
     double rightPwm = linearPower;
     double leftPwm = linearPower;
@@ -462,10 +401,21 @@ void flip() {
 }
 
 
+double speed = 100;
 void shoot(){
     //calculatePower(getDistance());
-    FlyWheelMotor.spin(directionType::rev, 100, velocityUnits::pct);
+    FlyWheelMotorOne.spin(directionType::rev, speed, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, speed, velocityUnits::pct);
     intake();
+}
+void stopPlace(){
+  TopIntake.stop();
+}
+void incSpeed(){
+  speed += 1;
+}
+void decSpeed(){
+  speed -= 1;
 }
 int counter = 0;
 void usercontrol( void ) {
@@ -473,11 +423,10 @@ void usercontrol( void ) {
   while (1){
       //Start Controller 1
       driveNormal();
-      if (Controller1.ButtonR2.pressing()){
-        if (FlyWheelMotor.velocity(velocityUnits::pct) < -95) {
+      if (Controller1.ButtonR1.pressing()){
               place_ball();
-        }
       }
+      Controller1.ButtonR1.released(stopPlace);
       Controller1.ButtonUp.pressed(toggleShooterFront);
       Controller1.ButtonUp.released(toggleNull);
       
@@ -496,6 +445,8 @@ void usercontrol( void ) {
       Controller1.ButtonB.pressed(unjamShooter);
       Controller1.ButtonB.released(stopUnjam);
       
+      Controller1.ButtonRight.released(incSpeed);
+      Controller1.ButtonLeft.released(decSpeed);
       //Start Controller 2
       lift();
       flip();
@@ -518,7 +469,7 @@ void usercontrol( void ) {
       counter++;
       if (counter % 10 == 0) {
         counter = 1;
-        Controller1.Screen.print(-FlyWheelMotor.velocity(velocityUnits::rpm));
+        Controller1.Screen.print(-FlyWheelMotorOne.velocity(velocityUnits::rpm));
       }
     vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources.
   }
