@@ -11,17 +11,19 @@ size = 3 #5 gives a more smooth and accurate reading but lags slightly behind ob
 ready = False
 GPIO.setmode(GPIO.BCM)
 READY = 17
-READY2SHOOT = 18
+FLAG = 18
 LEFT = 22
 RIGHT = 23
 GPIO.setup(READY, GPIO.OUT)
-GPIO.setup(READY2SHOOT, GPIO.OUT)
+GPIO.setup(FLAG, GPIO.IN)
 GPIO.setup(LEFT, GPIO.OUT)
 GPIO.setup(RIGHT, GPIO.OUT)
 
 def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
+def is_flag():
+    return GPIO.input(FLAG) == 1
 
 def reset():
     GPIO.output(READY2SHOOT, 0)
@@ -35,8 +37,8 @@ def go_ready():
 
 def go_shoot():
     reset()
-    GPIO.output(LEFT, 0)
-    GPIO.output(RIGHT, 0)
+    GPIO.output(LEFT, 1)
+    GPIO.output(RIGHT, 1)
 
 def go_left():
     reset()
@@ -58,8 +60,20 @@ if __name__ == "__main__":
             ret, array = cap.read()
             if not ret:
                 continue
+            #if the image needs to be rotated:
+            #h,w = array.shape[:2]
+            #center = (w/2, h/2)
+            #M = cv.getRotationMatrix2D(center, 180, 1.0)
+            #array = cv.warpAffine(array, M, (w, h))
+            
+            #if is_flag():
+            #    frame = array[:240, :, :]
+            #else:
+            #    frame = array[240:, :, :]
+            #uncomment the above code when desired
+            #right now, search for flags
             frame = array[:240, :, :]
-
+            
             # lower mask (0-10)
             lower_red = np.array([0,200,100])
             upper_red = np.array([10,255,255])
@@ -118,22 +132,11 @@ if __name__ == "__main__":
                     cY += each[1]/length
 
                 if cX > 360:
-                    go_left()
-                elif cX < 280:
                     go_right()
+                elif cX < 280:
+                    go_left()
                 else:
                     go_shoot()
-                    #cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
-
-            #cv.rectangle(array,(x,y),(x+w,y+h),(0,255,0),2)
-            #epsilon = 0.1*cv.arcLength(cnt, True)
-            #approx = cv.approxPolyDP(cnt, epsilon, True)
-            #cv.drawContours(array, cnt, 0, (0, 0, 255), 3)
-            # upper mask (170-180)
-            #display RGB image
-            cv.imshow('video',array)
-            #display depth image
-            #cv2.imshow('Depth image',depth)
 
             # quit program when 'esc' key is pressed
             k = cv.waitKey(5) & 0xFF
@@ -142,6 +145,7 @@ if __name__ == "__main__":
         print(frames/(time.time() - start))
         cap.release()
         reset()
+        GPIO.cleanup()
         cv.destroyAllWindows()
     except (KeyboardInterrupt):
         print('this is the number of frames at the end: '+str(frames))
@@ -149,5 +153,6 @@ if __name__ == "__main__":
         print('frames per second: '+str(frames/(time.time() - start)))
         cap.release()
         reset()
+        GPIO.cleanup()
         cv.destroyAllWindows()
         sys.exit(0)

@@ -18,8 +18,14 @@ if __name__ == "__main__":
             ret, array = cap.read()
             if not ret:
                 continue
+            #if the image needs to be rotated:
+            #h,w = array.shape[:2]
+            #center = (w/2, h/2)
+            #M = cv.getRotationMatrix2D(center, 180, 1.0)
+            #array = cv.warpAffine(array, M, (w, h))
+            
             #adjust so only the top half of the frame is processed
-            frame = array[:240, :, :]
+            frame = array
 
             #color masks
             img_hsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
@@ -51,9 +57,9 @@ if __name__ == "__main__":
 
             #contour detection
             #opencv4
-            cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
+            #cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
             #opencv3
-            #_, cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
+            _, cnts, hier = cv.findContours(edged.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
             frames += 1
             if cnts == None:
                 continue
@@ -71,9 +77,14 @@ if __name__ == "__main__":
                 for each in avg:
                     cX += each[0]/length
                     cY += each[1]/length
-                cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
+                
+                if cX > 360:
+                    cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
+                #elif cX < 280:
+                    #go_right()
+                #cv.circle(array, (int(cX), int(cY)), 7, (255, 255, 255), -1)
 
-            #cv.imshow("video", array)
+            cv.imshow("video", array)
             # quit program when 'esc' key is pressed
             k = cv.waitKey(5) & 0xFF
             if k == 27:
