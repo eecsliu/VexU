@@ -7,7 +7,16 @@ import shapedetector
 from scipy.spatial import distance as dist
 #import RPi.GPIO as GPIO            # import RPi.GPIO module  
 import time
- 
+
+# UPDATES: 
+# Code is fully functioning on a plugged in, regular kinect
+# Issues witht the electrical enginnering and code optimization at this point
+
+# an iteration beyond the previous contouring 
+# had hsv processing to find contours and then if a box was found within a certain range
+# it would detect it as a flag
+# kept the running average of conoturs as well in order to aim the robot
+# added GPIO code in order to send signals from Raspberry Pi to Brain
 avg = []
 size = 10
 #GPIO.setmode(GPIO.BCM)
@@ -96,7 +105,7 @@ if __name__ == "__main__":
 
 
         #mask = cv2.inRange(cv2.cvtColor(frame_convert2.video_cv(data), cv2.COLOR_BGR2HSV), (20, 0, 100), (55, 255, 255))
-        
+        # contouring code to find the largest objects still in reference after the mask
         output = cv2.bitwise_and(array, array, mask = mask)
 
         gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
@@ -110,7 +119,7 @@ if __name__ == "__main__":
  
 # find contours in the edge map
         cnts, hier = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    
+    #gets the largest area of what is included in the contours and focuses on that
     #cnts = imutils.grab_contours(cnts[0])
         largest = 0
         area = 0
@@ -120,7 +129,7 @@ if __name__ == "__main__":
             if area > largest:
                 largest = area
                 num = x
-    
+        #adds the center of the contours to the average array in orde to have a running average every frame
         rect = cv2.minAreaRect(cnts[num])
         box = cv2.cv.BoxPoints(rect)
         box = np.int0(box)
