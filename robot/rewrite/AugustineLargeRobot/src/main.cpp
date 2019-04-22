@@ -94,7 +94,7 @@ void climb() {
     RightMotorTwo.rotateFor(-360 * distance / wheelCircumference, rotationUnits::deg);
 }
 void flip_helper(double amount) {
-    Flipper.setVelocity(30, velocityUnits::pct);
+    Flipper.setVelocity(20, velocityUnits::pct);
     Flipper.rotateFor(amount, rotationUnits::deg);
     Flipper.stop(brakeType::hold);
 }
@@ -115,6 +115,13 @@ void lift_helper(double height) {
     LeftLift.startRotateTo(-height, rotationUnits::deg);
     RightLift.startRotateTo(height, rotationUnits::deg);
 }
+void lift_helper_wait(double height) {
+    halt();
+    LeftLift.setVelocity(80, velocityUnits::pct);
+    RightLift.setVelocity(80, velocityUnits::pct);
+    LeftLift.startRotateTo(-height, rotationUnits::deg);
+    RightLift.rotateTo(height, rotationUnits::deg);
+}
 void high_post_autonomous() {
     lift_helper(4000);
 }
@@ -131,7 +138,16 @@ void place_ball() {
 void shoot_autonomous() {
     FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
     FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
-    while (FlyWheelMotorOne.velocity(velocityUnits::pct) > -95) {
+    while (FlyWheelMotorOne.velocity(velocityUnits::pct) > -85) {
+        continue;
+    }
+    place_ball();
+    vex::task::sleep(2000);
+}
+void shoot_autonomous(double desiredSpeed) {
+    FlyWheelMotorOne.spin(directionType::rev, desiredSpeed, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, desiredSpeed, velocityUnits::pct);
+    while (FlyWheelMotorOne.velocity(velocityUnits::pct) > -(desiredSpeed - 10)) {
         continue;
     }
     place_ball();
@@ -144,6 +160,12 @@ void spin_up() {
   if (isShooter) {
     FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
     FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
+  }
+}
+void spin_up(double speed) {
+  if (isShooter) {
+    FlyWheelMotorOne.spin(directionType::rev, speed, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, speed, velocityUnits::pct);
   }
 }
 void unspin_up() {
@@ -189,59 +211,38 @@ void maintain_flip() {
     Flipper.stop(brakeType::hold);
 }
 void autonomous( void ) {
-    /*
-    intake();
-    forwardAutonomous(44);
-    forwardAutonomous(-13);
-    turninplaceAutonomous(-180 * team);
-    unflip_autonomous();
-    unflip_autonomous();
-    forwardAutonomous(-13);
-    flip_helper(40);
-    //lift_helper(200);
-    //vex::task::sleep(500);
-    stop_intake();
-    turninplaceAutonomous(180 * team);
-    high_post_autonomous();
-    forwardAutonomous(-(44 - 4));
-    turninplaceAutonomous(-90 * team);
-    forwardAutonomous(-(23.5/2.0));
-    turninplaceAutonomous(90 * team);
-    forwardAutonomous(-(2));
-    lift_helper(1500);
-    flip_helper(-30);
-    vex::task::sleep(3000);
-    flip_helper(-10);
-    forwardAutonomous(2);
-    floor_autonomous();
-    forwardAutonomous(20);*/
-    goTo(10, 10);
-    /*
+    const double TILE_WIDTH = 23.75;
+    
     spin_up();
-    forwardAutonomous(29);
-    shoot_autonomous();
+    //forwardAutonomous(30);
+    turninplaceAutonomous(3 * team);
+    shoot_autonomous(73);
+    turninplaceAutonomous(-3 * team);
 
-    unflip_autonomous();
-    unflip_autonomous();
-    forwardAutonomous(-29);
-    forwardAutonomous(-5);
-    unshoot();
+    forwardAutonomous(-4);
 
     turninplaceAutonomous(90 * team);
     intake();
+    spin_up(73);
     forwardAutonomous(42.75);
     turninplaceAutonomous(-90 * team);
-    forwardAutonomous(-15);
+    turninplaceAutonomous(4.5 * team);
+    shoot_autonomous(73);
+    turninplaceAutonomous(-4.5 * team);
+    unshoot();
+    unflip_autonomous();
+    unflip_autonomous();
+    
+    forwardAutonomous(-13);
     flip_autonomous();
-    forwardAutonomous(4.5);//Changed from 4 -> 4.5
-
+    forwardAutonomous(0);
     mid_post_autonomous();
     turninplaceAutonomous(90 * team);
-    forwardAutonomous(-48.25);//This value is countered by line 275. Changed from 49.25 -> 48.25
+    forwardAutonomous(-47.25);//Changed from 49.25 -> 48.25
 
-    lift_helper(2500);
+    lift_helper_wait(600);
+    forwardAutonomous(9.25);
     unflip_autonomous();
-    forwardAutonomous(4.25);*/
 
 }
 void activate_motors(double angularPower, double linearPower){
@@ -430,7 +431,7 @@ void usercontrol( void ) {
       driveNormal();
       Controller1.ButtonB.pressed(toggleNull);
       Controller1.ButtonB.released(toggleControls);
-      
+      Controller1.Screen.print(-FlyWheelMotorOne.velocity(velocityUnits::rpm));
       if (Controller1.ButtonL1.pressing() && isShooter){
         place_ball();
       }
