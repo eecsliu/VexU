@@ -8,7 +8,7 @@
 //
 using namespace vex;
 vex::brain Brain;
-vex::motor TopIntake (vex::PORT2, vex::gearSetting::ratio6_1,true);
+vex::motor TopIntake (vex::PORT2, vex::gearSetting::ratio18_1,true);
 vex::motor BottomIntake (vex::PORT4, vex::gearSetting::ratio18_1,true);
 vex::motor FlyWheelMotorOne (vex::PORT6, vex::gearSetting::ratio6_1,false);
 vex::motor FlyWheelMotorTwo (vex::PORT7, vex::gearSetting::ratio6_1,false);

@@ -94,11 +94,16 @@ void turninplaceAutonomous(double degrees) {
 void rotateTo(double degrees) {
   turninplaceAutonomous(degrees - orientation);
   orientation = degrees;
+  orientation = fmod(orientation, 360);
 }
 void goTo(double x, double y) {
   double xDelta = x - xPosition;
   double yDelta = y - yPosition;
-  rotateTo(atan(xDelta/yDelta) * convertDegrees);
+  double side = 0;
+  if (yDelta < 0) {
+    side = 180;
+  }
+  rotateTo(atan2(xDelta, yDelta) * convertDegrees);
   forwardAutonomous(sqrt(xDelta * xDelta + (yDelta * yDelta)));
 }
 void goTo(double x, double y, double degrees) {
@@ -117,8 +122,7 @@ void climbLow() {
   RightMotorTwo.spin(directionType::fwd);
   Hammer.setVelocity(90, velocityUnits::pct);
   Hammer.rotateTo(-800, rotationUnits::deg);
-  vex::task::sleep(300);
-  Hammer.rotateTo(-500, rotationUnits::deg);
+  vex::task::sleep(400);
   LeftMotorOne.stop(brakeType::hold);
   LeftMotorTwo.stop(brakeType::hold);
   RightMotorOne.stop(brakeType::hold);
@@ -210,17 +214,18 @@ bool aimShooter(){
   int serialInstruction = LeftAnalog.value() - RightAnalog.value();
   Brain.Screen.clearLine();
   Brain.Screen.print(serialInstruction);
+  int adjustmentSpeed = 8;
   if (serialInstruction > 0) {
-    LeftMotorOne.spin(directionType::rev, 10, velocityUnits::pct);
-    LeftMotorTwo.spin(directionType::rev, 10, velocityUnits::pct);
-    RightMotorOne.spin(directionType::rev, 10, velocityUnits::pct);
-    RightMotorTwo.spin(directionType::rev, 10, velocityUnits::pct);
+    LeftMotorOne.spin(directionType::rev, adjustmentSpeed, velocityUnits::pct);
+    LeftMotorTwo.spin(directionType::rev, adjustmentSpeed, velocityUnits::pct);
+    RightMotorOne.spin(directionType::rev, adjustmentSpeed, velocityUnits::pct);
+    RightMotorTwo.spin(directionType::rev, adjustmentSpeed, velocityUnits::pct);
     return true;
   } else if (serialInstruction < 0) {
-    LeftMotorOne.spin(directionType::fwd, 10, velocityUnits::pct);
-    LeftMotorTwo.spin(directionType::fwd, 10, velocityUnits::pct);
-    RightMotorOne.spin(directionType::fwd, 10, velocityUnits::pct);
-    RightMotorTwo.spin(directionType::fwd, 10, velocityUnits::pct);
+    LeftMotorOne.spin(directionType::fwd, adjustmentSpeed, velocityUnits::pct);
+    LeftMotorTwo.spin(directionType::fwd, adjustmentSpeed, velocityUnits::pct);
+    RightMotorOne.spin(directionType::fwd, adjustmentSpeed, velocityUnits::pct);
+    RightMotorTwo.spin(directionType::fwd, adjustmentSpeed, velocityUnits::pct);
     return true;
   }
   stopAim();
@@ -272,7 +277,7 @@ void driveTank(){
 }
 void toggleDrive(){
     direction = -direction;
-    Controller1.Screen.print(driveType);
+    
 }
 
 void toggleNull() {
@@ -287,6 +292,9 @@ void unshoot() {
 }
 void place_ball() {
     TopIntake.spin(directionType::rev, 100, velocityUnits::pct);
+}
+void place_one_ball() {
+    TopIntake.startRotateFor(directionType::rev, 800, rotationUnits::deg, 100, velocityUnits::pct);
 }
 void place_ball_control() {
     if (Controller1.ButtonR2.pressing()) {
@@ -338,6 +346,7 @@ void shoot_autonomous() {
     place_ball();
     vex::task::sleep(2000);
     turninplaceAutonomous(-degreeChange);
+    unshoot();
 }
 
 void unjamShooter() {
@@ -551,22 +560,29 @@ void autonomous( void ) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-    int team = 1; //1 for red, -1 for blue
+    int team = -1; //1 for red, -1 for blue
     const double TILE_WIDTH = 23.75;
     spin_up();
     goTo(0, TILE_WIDTH);
     shoot_autonomous();
-    goTo(0, TILE_WIDTH * 2);
-    forwardAutonomous(-(TILE_WIDTH + 4));
+    unshoot();
+    
+    goTo(0, TILE_WIDTH * 1.9);
+    forwardAutonomous(-(TILE_WIDTH * 1.9 + 5));
     turninplaceAutonomous(90 * team);
-    reverse_intake();
-    forwardAutonomous(TILE_WIDTH * 2)
-    goTo(team * 2 * TILE_WIDTH, TILE_WIDTH, 0);
+    intake();
+    forwardAutonomous(TILE_WIDTH * 2);
+    forwardAutonomous(-2);
+    turninplaceAutonomous(-90 * team);
+    goTo(1.95 * TILE_WIDTH * team, 1.9 * TILE_WIDTH, 0);
+    forwardAutonomous(-20);
+    spin_up();
+    goTo(team * TILE_WIDTH * 1.35, TILE_WIDTH * 1.25, 45 * team);
     shoot_autonomous();
-    goTo(team * 2 * TILE_WIDTH, TILE_WIDTH * 2);
-    forwardAutonomous(-TILE_WIDTH);
-    goTo(0, 0);
-    goTo(0, -(TILE_WIDTH + 3), -90 * team);
+
+    forwardAutonomous(7);
+    turninplaceAutonomous(team * -45);
+    forwardAutonomous(-1.25 * TILE_WIDTH);
     climbLow();
 
     /*
@@ -620,9 +636,11 @@ void usercontrol( void ) {
     // update your motors, etc.
     // ........................................................................
     
+    
+    Controller1.Screen.print(-FlyWheelMotorTwo.velocity(velocityUnits::rpm));
     driveNormal();
-    Controller1.ButtonR1.pressed(place_ball);
-    Controller1.ButtonR1.released(stop_place);
+    //Controller1.ButtonR1.pressed(place_ball);
+    Controller1.ButtonR1.released(place_one_ball);
 
     Controller1.ButtonL2.pressed(reverse_intake);
     Controller1.ButtonL2.released(stop_intake);
@@ -649,16 +667,11 @@ void usercontrol( void ) {
     }
     Controller1.ButtonY.released(stopAim);
     if (Controller1.ButtonX.pressing()) {
-      Hammer.spin(directionType::fwd, 80, velocityUnits::pct);
+      Hammer.spin(directionType::fwd, 100, velocityUnits::pct);
     } else if (Controller1.ButtonB.pressing()) {
-      Hammer.spin(directionType::rev, 80, velocityUnits::pct);
+      Hammer.spin(directionType::rev, 100, velocityUnits::pct);
     } else {
       Hammer.stop(brakeType::hold);
-    }
-    counter++;
-    if (counter % 10 == 0) {
-      counter = 1;
-      Controller1.Screen.print(-FlyWheelMotorOne.velocity(velocityUnits::rpm));
     }
   }
 }

@@ -1,4 +1,4 @@
-#include "robot-config.h"
+#include "vex.h"
 #include "constants.h"
 #define _USE_MATH_DEFINES
 using namespace std;
@@ -70,16 +70,11 @@ void turninplaceAutonomous(double degrees) {
 void rotateTo(double degrees) {
   turninplaceAutonomous(degrees - orientation);
   orientation = degrees;
-  orientation = fmod(orientation, 360);
 }
 void goTo(double x, double y) {
   double xDelta = x - xPosition;
   double yDelta = y - yPosition;
-  double side = 0;
-  if (yDelta < 0) {
-    side = 180;
-  }
-  rotateTo(atan2(xDelta, yDelta) * convertDegrees);
+  rotateTo(atan(xDelta/yDelta) * convertDegrees);
   forwardAutonomous(sqrt(xDelta * xDelta + (yDelta * yDelta)));
 }
 void goTo(double x, double y, double degrees) {
@@ -186,6 +181,34 @@ void maintain_flip() {
     Flipper.stop(brakeType::hold);
 }
 void autonomous( void ) {
+    /*
+    intake();
+    forwardAutonomous(44);
+    forwardAutonomous(-13);
+    turninplaceAutonomous(-180 * team);
+    unflip_autonomous();
+    unflip_autonomous();
+    forwardAutonomous(-13);
+    flip_helper(40);
+    //lift_helper(200);
+    //vex::task::sleep(500);
+    stop_intake();
+    turninplaceAutonomous(180 * team);
+    high_post_autonomous();
+    forwardAutonomous(-(44 - 4));
+    turninplaceAutonomous(-90 * team);
+    forwardAutonomous(-(23.5/2.0));
+    turninplaceAutonomous(90 * team);
+    forwardAutonomous(-(2));
+    lift_helper(1500);
+    flip_helper(-30);
+    vex::task::sleep(3000);
+    flip_helper(-10);
+    forwardAutonomous(2);
+    floor_autonomous();
+    forwardAutonomous(20);*/
+    goTo(10, 10);
+    /*
     spin_up();
     forwardAutonomous(29);
     shoot_autonomous();
@@ -198,10 +221,8 @@ void autonomous( void ) {
 
     turninplaceAutonomous(90 * team);
     intake();
-    spin_up();
     forwardAutonomous(42.75);
     turninplaceAutonomous(-90 * team);
-    shoot_autonomous();
     forwardAutonomous(-15);
     flip_autonomous();
     forwardAutonomous(4.5);//Changed from 4 -> 4.5
@@ -212,7 +233,7 @@ void autonomous( void ) {
 
     lift_helper(2500);
     unflip_autonomous();
-    forwardAutonomous(4.25);
+    forwardAutonomous(4.25);*/
 
 }
 void activate_motors(double angularPower, double linearPower){
@@ -299,44 +320,21 @@ int MID = 3000;
 int FLOOR = 0;
 void lift(){
     if (autonomousActive == false){
-        double power = Controller2.Axis2.position(percentUnits::pct);
-        if (Controller2.ButtonR2.pressing()) {
-            if (abs(RightLift.rotation(rotationUnits::deg) - 6000) <100) {
-                power = 0;
-            }
-            else if (RightLift.rotation(rotationUnits::deg) < 6000) {
-                power = 80;
-            } else {
-                power = -80;
-            }
-        } else if (Controller2.ButtonR1.pressing()) {
-            if (abs(RightLift.rotation(rotationUnits::deg) - HIGHMID) <100) {
-                power = 0;
-            }
-            else if (RightLift.rotation(rotationUnits::deg) < HIGHMID) {
-                power = 80;
-            } else {
-                power = -80;
-            }
-        } else if (Controller2.ButtonX.pressing()) {
-            if (abs(RightLift.rotation(rotationUnits::deg) - HIGH) <100) {
-                power = 0;
-            }
-            else  if (RightLift.rotation(rotationUnits::deg) < HIGH) {
-                power = 80;
-            } else {
-                power = -80;
-            }
-        } else if (Controller2.ButtonA.pressing()) {
+        double power = 0;
+        if (Controller1.ButtonR2.pressing()) {
+            power = -80;
+        } else if (Controller1.ButtonR1.pressing()) {
+            power = 80;
+        } else if (Controller1.ButtonUp.pressing()) {
             if (abs(RightLift.rotation(rotationUnits::deg) - MID) <100) {
                 power = 0;
             }
-            else if (RightLift.rotation(rotationUnits::deg) < MID) {
+            else  if (RightLift.rotation(rotationUnits::deg) < MID) {
                 power = 80;
             } else {
                 power = -80;
             }
-        } else if (Controller2.ButtonB.pressing()) {
+        } else if (Controller1.ButtonDown.pressing()) {
             if (abs(RightLift.rotation(rotationUnits::deg) - FLOOR) <100) {
                 power = 0;
             }
@@ -361,14 +359,12 @@ void lift(){
 }
 void flip() {
     if (autonomousActive == false){
-        double power = Controller2.Axis3.position(percentUnits::pct);
-        if (Controller2.ButtonUp.pressing()) {
+      double power = 0;
+        if (Controller1.ButtonL2.pressing()) {
             power = 25;
-        } else if (Controller2.ButtonDown.pressing()) {
+        } else if (Controller1.ButtonL1.pressing()) {
             power = -25;
-        } else if (Controller2.ButtonLeft.pressing()) {
-            power = (flipperStartPosition - Flipper.rotation(rotationUnits::deg))/1.4;
-        } else if (Controller2.ButtonRight.pressing()) {
+        } else if (Controller1.ButtonLeft.pressing()) {
             power = (flipperStartPosition + 115 - Flipper.rotation(rotationUnits::deg))/1.2;
         }
           if (abs(power) < 10) {
@@ -400,50 +396,45 @@ void incSpeed(){
 void decSpeed(){
   speed -= 1;
 }
+void toggleSpinup() {
+  if (FlyWheelMotorOne.isSpinning()) {
+    unspin_up();
+  } else {
+    spin_up();
+  }
+}
+bool isShooter = false;
+void toggleControls() {
+  isShooter = !isShooter;
+}
 int counter = 0;
 void usercontrol( void ) {
   // User control code here, inside the loop
   while (1){
       //Start Controller 1
       driveNormal();
-      if (Controller1.ButtonR1.pressing()){
-              place_ball();
+      Controller1.ButtonB.released(toggleControls);
+      Controller1.Screen.print(isShooter);
+      if (isShooter) {
+        if (Controller1.ButtonR1.pressing()){
+          place_ball();
+        }
+        Controller1.ButtonR1.released(stopPlace);
+
+        Controller1.ButtonLeft.pressed(toggleSpinup);
+        Controller1.ButtonLeft.released(toggleNull);
+        Controller1.ButtonL1.pressed(spin_up);
+        Controller1.ButtonL1.released(toggleNull);
+        Controller1.ButtonR2.pressed(reverse_intake);
+        Controller1.ButtonR2.released(stop_intake);
+        Controller1.ButtonR1.pressed(intake);
+        Controller1.ButtonR1.released(stop_intake);
+      } else {
+        //Start Controller 2
+        lift();
+        flip();
       }
-      Controller1.ButtonR1.released(stopPlace);
-      Controller1.ButtonUp.released(toggleDrive);
       
-      Controller1.ButtonL2.pressed(reverse_intake);
-      Controller1.ButtonL2.released(stop_intake);
-      
-      Controller1.ButtonL1.pressed(intake);
-      Controller1.ButtonL1.released(stop_intake);
-      
-      Controller1.ButtonR2.pressed(shoot);
-      Controller1.ButtonR2.released(unshoot);
-      
-      Controller1.ButtonB.pressed(unjamShooter);
-      Controller1.ButtonB.released(stopUnjam);
-      
-      Controller1.ButtonRight.released(incSpeed);
-      Controller1.ButtonLeft.released(decSpeed);
-      //Start Controller 2
-      lift();
-      flip();
-      
-      Controller2.ButtonA.pressed(mid_post_autonomous);
-      Controller2.ButtonA.released(toggleNull);
-      
-      Controller2.ButtonB.pressed(floor_autonomous);
-      Controller2.ButtonB.released(toggleNull);
-      
-      Controller2.ButtonX.pressed(high_post_autonomous);
-      Controller2.ButtonX.released(toggleNull);
-      
-      Controller2.ButtonLeft.pressed(flipGround);
-      Controller2.ButtonLeft.released(maintain_flip);
-      
-      Controller2.ButtonL1.pressed(spin_up);
-      Controller2.ButtonL1.released(unspin_up);
       
       counter++;
       if (counter % 10 == 0) {
