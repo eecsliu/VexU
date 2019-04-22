@@ -15,6 +15,7 @@ vex::competition    Competition;
 
 double flipperStartPosition;
 double direction = 1;
+bool isShooter = true;
 void pre_auton( void ) {
   flipperStartPosition = Flipper.rotation(rotationUnits::deg)-180;
 }
@@ -140,10 +141,13 @@ void place_ball_autonomous() {
     TopIntake.spin(directionType::rev, 100, velocityUnits::pct);
 }
 void spin_up() {
+  if (isShooter) {
     FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
     FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
+  }
 }
 void unspin_up() {
+    Controller1.Screen.print("NOT SPINNING UP");
     FlyWheelMotorOne.stop();
     FlyWheelMotorTwo.stop();
 }
@@ -169,10 +173,14 @@ void stopUnjam() {
     TopIntake.stop();
 }
 void intake(){
+  if (isShooter) {
     BottomIntake.spin(directionType::rev, 50, velocityUnits::pct);
+  }
 }
 void reverse_intake() {
-    BottomIntake.spin(directionType::fwd, 50, velocityUnits::pct);
+    if (isShooter) {
+      BottomIntake.spin(directionType::fwd, 50, velocityUnits::pct);
+    }
 }
 void stop_intake() {
     BottomIntake.stop();
@@ -281,6 +289,9 @@ void driveNormal(){
             SENSITIVITY_CONSTANT = -1;
         }
         double linearPower = Controller1.Axis3.position(percentUnits::pct) * direction;
+        if (!isShooter) {
+          linearPower *= -1;
+        }
         double angularPower = Controller1.Axis1.value() * SENSITIVITY_CONSTANT;
         /*if (Controller1.ButtonUp.pressing()) {
             linearPower = 40;
@@ -361,9 +372,9 @@ void flip() {
     if (autonomousActive == false){
       double power = 0;
         if (Controller1.ButtonL2.pressing()) {
-            power = 25;
-        } else if (Controller1.ButtonL1.pressing()) {
             power = -25;
+        } else if (Controller1.ButtonL1.pressing()) {
+            power = 25;
         } else if (Controller1.ButtonLeft.pressing()) {
             power = (flipperStartPosition + 115 - Flipper.rotation(rotationUnits::deg))/1.2;
         }
@@ -396,14 +407,18 @@ void incSpeed(){
 void decSpeed(){
   speed -= 1;
 }
+bool isSpinning = false;
 void toggleSpinup() {
-  if (FlyWheelMotorOne.isSpinning()) {
-    unspin_up();
-  } else {
-    spin_up();
+  if (isShooter) {
+    if (isSpinning) {
+      unspin_up();
+      isSpinning = false;
+    } else {
+      spin_up();
+      isSpinning = true;
+    }
   }
 }
-bool isShooter = false;
 void toggleControls() {
   isShooter = !isShooter;
 }
@@ -413,23 +428,21 @@ void usercontrol( void ) {
   while (1){
       //Start Controller 1
       driveNormal();
+      Controller1.ButtonB.pressed(toggleNull);
       Controller1.ButtonB.released(toggleControls);
-      Controller1.Screen.print(isShooter);
-      if (isShooter) {
-        if (Controller1.ButtonR1.pressing()){
-          place_ball();
-        }
-        Controller1.ButtonR1.released(stopPlace);
+      
+      if (Controller1.ButtonL1.pressing() && isShooter){
+        place_ball();
+      }
+      Controller1.ButtonL1.released(stopPlace);
 
-        Controller1.ButtonLeft.pressed(toggleSpinup);
-        Controller1.ButtonLeft.released(toggleNull);
-        Controller1.ButtonL1.pressed(spin_up);
-        Controller1.ButtonL1.released(toggleNull);
-        Controller1.ButtonR2.pressed(reverse_intake);
-        Controller1.ButtonR2.released(stop_intake);
-        Controller1.ButtonR1.pressed(intake);
-        Controller1.ButtonR1.released(stop_intake);
-      } else {
+      Controller1.ButtonL2.pressed(spin_up);
+      Controller1.ButtonL2.released(unspin_up);
+      Controller1.ButtonR2.pressed(reverse_intake);
+      Controller1.ButtonR2.released(stop_intake);
+      Controller1.ButtonR1.pressed(intake);
+      Controller1.ButtonR1.released(stop_intake);
+      if (!isShooter) {
         //Start Controller 2
         lift();
         flip();
@@ -439,12 +452,8 @@ void usercontrol( void ) {
       counter++;
       if (counter % 10 == 0) {
         counter = 1;
-        Controller1.Screen.print(-FlyWheelMotorOne.velocity(velocityUnits::rpm));
-        if (-FlyWheelMotorOne.velocity(velocityUnits::rpm) > 500) {
-          Controller1.rumble("");
-        }
+        //Controller1.Screen.print(-FlyWheelMotorOne.velocity(velocityUnits::rpm));
       }
-      Controller1.rumble("HI");
     vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources.
   }
 }
