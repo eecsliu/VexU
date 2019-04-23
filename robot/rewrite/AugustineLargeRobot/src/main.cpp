@@ -45,6 +45,7 @@ void forwardAutonomous(double distance, double speed) {
     LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
     RightMotorOne.startRotateFor(-rotations, rotationUnits::deg);
     RightMotorTwo.rotateFor(-rotations, rotationUnits::deg);
+    vex::task::sleep(200);
     xPosition += sin(orientation * convertRadians) * distance;
     yPosition += cos(orientation * convertRadians) * distance;
 }
@@ -65,6 +66,7 @@ void turninplaceAutonomous(double degrees) {
     LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
     RightMotorOne.startRotateFor(rotations, rotationUnits::deg);
     RightMotorTwo.rotateFor(rotations, rotationUnits::deg);
+    vex::task::sleep(200);
     orientation += degrees;
     orientation = fmod(orientation, 360);
 }
@@ -167,6 +169,12 @@ void spin_up() {
     FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
   }
 }
+void spin_up_slow() {
+  if (isShooter) {
+    FlyWheelMotorOne.spin(directionType::rev, 73, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, 73, velocityUnits::pct);
+  }
+}
 void spin_up(double speed) {
   if (isShooter) {
     FlyWheelMotorOne.spin(directionType::rev, speed, velocityUnits::pct);
@@ -231,8 +239,8 @@ void autonomous( void ) {
     
     forwardAutonomous(-13);
     flip_helper(45);
-    mid_post_autonomous();
     turninplaceAutonomous(90 * team);
+    mid_post_autonomous();
     flip_helper(65);
     forwardAutonomous(-48.25);//Changed from 49.25 -> 48.25
     Controller1.Screen.print("DONE MOVING");
@@ -439,8 +447,10 @@ void usercontrol( void ) {
       }
       Controller1.ButtonL1.released(stopPlace);
 
-      Controller1.ButtonL2.pressed(spin_up);
+      Controller1.ButtonL2.pressed(spin_up_slow);
       Controller1.ButtonL2.released(unspin_up);
+      Controller1.ButtonX.pressed(spin_up);
+      Controller1.ButtonX.released(unspin_up);
       Controller1.ButtonR2.pressed(reverse_intake);
       Controller1.ButtonR2.released(stop_intake);
       Controller1.ButtonR1.pressed(intake);
