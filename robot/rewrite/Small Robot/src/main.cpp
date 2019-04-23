@@ -330,23 +330,29 @@ void shoot(){
 void shoot_autonomous() {
     //calculatePower(getDistance());
     Brain.resetTimer();
+    if (team == 1) {
+      turninplaceAutonomous(5);
+    }
     LeftMotorOne.resetRotation();
     LeftMotorTwo.resetRotation();
     RightMotorOne.resetRotation();
     RightMotorTwo.resetRotation();
-    while (Brain.timer(timeUnits::sec) < 2){
+    /*while (Brain.timer(timeUnits::sec) < 2){
       aimShooter();
     }
     double rotationChange = (LeftMotorOne.rotation(rotationUnits::deg) + LeftMotorTwo.rotation(rotationUnits::deg) + RightMotorOne.rotation(rotationUnits::deg) + RightMotorTwo.rotation(rotationUnits::deg))/4;
     double degreeChange = rotationChange * wheelDiameter / (robotWidthPos);
-    stopAim();
+    stopAim();*/
     FlyWheelMotorOne.spin(directionType::rev, 100, velocityUnits::pct);
     FlyWheelMotorTwo.spin(directionType::rev, 100, velocityUnits::pct);
     //vex::task::sleep(1000);
     place_ball();
     vex::task::sleep(2000);
-    turninplaceAutonomous(-degreeChange);
+    //turninplaceAutonomous(-degreeChange);
     unshoot();
+    if (team == 1) {
+      turninplaceAutonomous(-5);
+    }
 }
 
 void unjamShooter() {
@@ -560,7 +566,7 @@ void autonomous( void ) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-    int team = -1; //1 for red, -1 for blue
+    int team = 1; //1 for red, -1 for blue
     const double TILE_WIDTH = 23.75;
     spin_up();
     goTo(0, TILE_WIDTH);
@@ -577,11 +583,11 @@ void autonomous( void ) {
     goTo(1.95 * TILE_WIDTH * team, 1.9 * TILE_WIDTH, 0);
     forwardAutonomous(-20);
     spin_up();
-    goTo(team * TILE_WIDTH * 1.35, TILE_WIDTH * 1.25, 45 * team);
+    goTo(team * TILE_WIDTH * 2 - 9, TILE_WIDTH * 1, 30 * team);
     shoot_autonomous();
 
-    forwardAutonomous(7);
-    turninplaceAutonomous(team * -45);
+    forwardAutonomous(-3);
+    turninplaceAutonomous(team * -30);
     forwardAutonomous(-1.25 * TILE_WIDTH);
     climbLow();
 

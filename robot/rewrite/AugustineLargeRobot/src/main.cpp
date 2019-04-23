@@ -75,7 +75,11 @@ void rotateTo(double degrees) {
 void goTo(double x, double y) {
   double xDelta = x - xPosition;
   double yDelta = y - yPosition;
-  rotateTo(atan(xDelta/yDelta) * convertDegrees);
+  double side = 0;
+  if (yDelta < 0) {
+    side = 180;
+  }
+  rotateTo(atan2(xDelta, yDelta) * convertDegrees);
   forwardAutonomous(sqrt(xDelta * xDelta + (yDelta * yDelta)));
 }
 void goTo(double x, double y, double degrees) {
@@ -99,7 +103,7 @@ void flip_helper(double amount) {
     Flipper.stop(brakeType::hold);
 }
 void flip_autonomous() {
-    flip_helper(110);
+    flip_helper(115);
 }
 void unflip_autonomous() {
     flip_helper(-90);
@@ -110,17 +114,18 @@ void halt() {
 }
 void lift_helper(double height) {
     halt();
-    LeftLift.setVelocity(80, velocityUnits::pct);
-    RightLift.setVelocity(80, velocityUnits::pct);
+    LeftLift.setVelocity(100, velocityUnits::pct);
+    RightLift.setVelocity(100, velocityUnits::pct);
     LeftLift.startRotateTo(-height, rotationUnits::deg);
     RightLift.startRotateTo(height, rotationUnits::deg);
 }
 void lift_helper_wait(double height) {
     halt();
-    LeftLift.setVelocity(80, velocityUnits::pct);
-    RightLift.setVelocity(80, velocityUnits::pct);
+    LeftLift.setVelocity(100, velocityUnits::pct);
+    RightLift.setVelocity(100, velocityUnits::pct);
     LeftLift.startRotateTo(-height, rotationUnits::deg);
     RightLift.rotateTo(height, rotationUnits::deg);
+    halt();
 }
 void high_post_autonomous() {
     lift_helper(4000);
@@ -212,37 +217,34 @@ void maintain_flip() {
 }
 void autonomous( void ) {
     const double TILE_WIDTH = 23.75;
-    
-    spin_up();
-    //forwardAutonomous(30);
-    turninplaceAutonomous(3 * team);
     shoot_autonomous(73);
-    turninplaceAutonomous(-3 * team);
-
+    unshoot();
     forwardAutonomous(-4);
 
     turninplaceAutonomous(90 * team);
     intake();
-    spin_up(73);
     forwardAutonomous(42.75);
+    stop_intake();
     turninplaceAutonomous(-90 * team);
-    turninplaceAutonomous(4.5 * team);
-    shoot_autonomous(73);
-    turninplaceAutonomous(-4.5 * team);
-    unshoot();
     unflip_autonomous();
     unflip_autonomous();
     
     forwardAutonomous(-13);
-    flip_autonomous();
-    forwardAutonomous(0);
+    flip_helper(45);
     mid_post_autonomous();
     turninplaceAutonomous(90 * team);
-    forwardAutonomous(-47.25);//Changed from 49.25 -> 48.25
-
-    lift_helper_wait(600);
-    forwardAutonomous(9.25);
+    flip_helper(65);
+    forwardAutonomous(-48.25);//Changed from 49.25 -> 48.25
+    Controller1.Screen.print("DONE MOVING");
+    lift_helper_wait(500);
+    Controller1.Screen.print("DONE LIFTING");
+    forwardAutonomous(10.25);
     unflip_autonomous();
+    
+    intake();
+    goTo(team * TILE_WIDTH + 4.7, -14, 31 * team);
+    stop_intake();
+    shoot_autonomous(77);
 
 }
 void activate_motors(double angularPower, double linearPower){
