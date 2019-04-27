@@ -49,7 +49,7 @@ const double wheelCircumference = wheelDiameter * M_PI;
 const double robotWidthPos = 11.9000847212;
 const double convertDegrees = (360) / (2 * M_PI);
 const double convertRadians = 1 / convertDegrees;
-bool team = 1; //1 is red, -1 for blue
+int team = -1; //1 is red, -1 for blue
 double xPosition = 0;
 double yPosition = 0;
 double orientation = 0;
@@ -83,7 +83,7 @@ void turninplaceAutonomous(double degrees) {
     //Creates an imaginary circle that is the circle of rotation
     //that the robot would rotate in. Calculates the circumference of that
     //circle and rotates the motors that number of degrees
-    double rotations = degrees * robotWidth * team / wheelDiameter;
+    double rotations = degrees * robotWidth / wheelDiameter;
     LeftMotorOne.startRotateFor(rotations, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
     RightMotorOne.startRotateFor(rotations, rotationUnits::deg);
@@ -111,10 +111,10 @@ void goTo(double x, double y, double degrees) {
   rotateTo(degrees);
 }
 void climbLow() {
-  LeftMotorOne.setVelocity(100, velocityUnits::pct);
-  RightMotorOne.setVelocity(100, velocityUnits::pct);
-  LeftMotorTwo.setVelocity(100, velocityUnits::pct);
-  RightMotorTwo.setVelocity(100, velocityUnits::pct);
+  LeftMotorOne.setVelocity(30, velocityUnits::pct);
+  RightMotorOne.setVelocity(30, velocityUnits::pct);
+  LeftMotorTwo.setVelocity(30, velocityUnits::pct);
+  RightMotorTwo.setVelocity(30, velocityUnits::pct);
   //Drives forward 45 inches at 50 % speed
   LeftMotorOne.spin(directionType::rev);
   LeftMotorTwo.spin(directionType::rev);
@@ -122,7 +122,15 @@ void climbLow() {
   RightMotorTwo.spin(directionType::fwd);
   Hammer.setVelocity(90, velocityUnits::pct);
   Hammer.rotateTo(-800, rotationUnits::deg);
-  vex::task::sleep(400);
+  LeftMotorOne.setVelocity(100, velocityUnits::pct);
+  RightMotorOne.setVelocity(100, velocityUnits::pct);
+  LeftMotorTwo.setVelocity(100, velocityUnits::pct);
+  RightMotorTwo.setVelocity(100, velocityUnits::pct);
+  LeftMotorOne.spin(directionType::rev);
+  LeftMotorTwo.spin(directionType::rev);
+  RightMotorOne.spin(directionType::fwd);
+  RightMotorTwo.spin(directionType::fwd);
+  vex::task::sleep(700);
   LeftMotorOne.stop(brakeType::hold);
   LeftMotorTwo.stop(brakeType::hold);
   RightMotorOne.stop(brakeType::hold);
@@ -331,7 +339,7 @@ void shoot_autonomous() {
     //calculatePower(getDistance());
     Brain.resetTimer();
     if (team == 1) {
-      turninplaceAutonomous(5);
+      turninplaceAutonomous(7);
     }
     LeftMotorOne.resetRotation();
     LeftMotorTwo.resetRotation();
@@ -351,7 +359,7 @@ void shoot_autonomous() {
     //turninplaceAutonomous(-degreeChange);
     unshoot();
     if (team == 1) {
-      turninplaceAutonomous(-5);
+      turninplaceAutonomous(-7);
     }
 }
 
@@ -374,53 +382,45 @@ void lower() {
   LiftTwo.spin(directionType::fwd, 20, velocityUnits::pct);
 }
 void robot_skills() {
+    const double TILE_WIDTH = 23.75;
+    Hammer.stop(brakeType::hold);
+    spin_up();
+    goTo(0, TILE_WIDTH);
+    vex::task::sleep(800);
+    shoot_autonomous();
+    unshoot();
+    intake();
+    goTo(0, TILE_WIDTH * 1.85);
+    stop_intake();
+    forwardAutonomous(-(TILE_WIDTH * 1.85 + 5));
+    turninplaceAutonomous(90 * team);
+    intake();
+    forwardAutonomous(TILE_WIDTH * 2);
+    spin_up();
+    forwardAutonomous(-1.5);
+    turninplaceAutonomous(-90 * team);
+    goTo(1.95 * TILE_WIDTH * team, 1 * TILE_WIDTH, 0);
+    shoot_autonomous();    
+    goTo(1.95 * TILE_WIDTH * team, 1.87 * TILE_WIDTH, 0);
+    forwardAutonomous(-(TILE_WIDTH + 4));
+    turninplaceAutonomous(90);
+    reverse_intake();
+    forwardAutonomous(2.2 * TILE_WIDTH);
+    turninplaceAutonomous(90);
+    forwardAutonomous(TILE_WIDTH);
+    turninplaceAutonomous(90);
+    intake();
+    spin_up();
+    forwardAutonomous(2.2 * TILE_WIDTH);
+    goTo(3.95 * TILE_WIDTH, 1 * TILE_WIDTH, 0);
+    shoot_autonomous();
+    turninplaceAutonomous(-90);
+    forwardAutonomous(4 * TILE_WIDTH);
+
+    goTo(0, -(TILE_WIDTH + 5), -90);
+    climb();
     /*
-    spin_up();
-    forwardAutonomous(23.75);
-    turninplaceAutonomous(10);
-    shoot_autonomous();
-    turninplaceAutonomous(-10);
-    forwardAutonomous(21);
-    unshoot();
-    forwardAutonomous(-(23.75 + 21 + 4.5));
-    turninplaceAutonomous(90);
-    intake();
-    forwardAutonomous(47);
-    turninplaceAutonomous(-90);
-    spin_up();
-    forwardAutonomous(4.5 + 23.75);
-    turninplaceAutonomous(10);
-    shoot_autonomous();
-    turninplaceAutonomous(-10);
-    forwardAutonomous(21);
-    unshoot();
-    intake();
-    forwardAutonomous(-21);
-    turninplaceAutonomous(90);
-    forwardAutonomous(23.75 * 1.5);
-    turninplaceAutonomous(90);
-    forwardAutonomous(23.75 + 6.5);
-    turninplaceAutonomous(90);
-    forwardAutonomous(10);
-    forwardAutonomous(-10);
-    turninplaceAutonomous(90);
-    forwardAutonomous(23.75);
-    turninplaceAutonomous(90);
-    forwardAutonomous((23.75 * .5)+4);
-    turninplaceAutonomous(-90);
-    spin_up();
-    forwardAutonomous(6.5);
-    turninplaceAutonomous(10);
-    shoot_autonomous();
-    turninplaceAutonomous(-10);
-    forwardAutonomous(21);
-    unshoot();
-    intake();
-    forwardAutonomous(-(21+4.5+11.5));
-    turninplaceAutonomous(-90);
-    forwardAutonomous(2.5 * 23.75 + 4);
-    turninplaceAutonomous(-90);
-    climb();*/
+    Either this or the next commented block is Sacramento Auto
     int default_speed = 33;
     Hammer.stop(brakeType::hold);
     spin_up();
@@ -485,9 +485,9 @@ void robot_skills() {
     forwardAutonomous(-(23.75 - 2), default_speed);
     turninplaceAutonomous(90);
     forwardAutonomous(-1, default_speed);
-    climb();
-    /*forwardAutonomous(23.75, 30);
+    climb();*/
 
+    /*forwardAutonomous(23.75, 30);
     turninplaceAutonomous(10);
     shoot_autonomous();
      turninplaceAutonomous(-10);
@@ -566,10 +566,10 @@ void autonomous( void ) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-    int team = 1; //1 for red, -1 for blue
     const double TILE_WIDTH = 23.75;
     spin_up();
     goTo(0, TILE_WIDTH);
+    vex::task::sleep(800);
     shoot_autonomous();
     unshoot();
     
@@ -578,44 +578,19 @@ void autonomous( void ) {
     turninplaceAutonomous(90 * team);
     intake();
     forwardAutonomous(TILE_WIDTH * 2);
-    forwardAutonomous(-2);
+    forwardAutonomous(-1.5);
     turninplaceAutonomous(-90 * team);
     goTo(1.95 * TILE_WIDTH * team, 1.9 * TILE_WIDTH, 0);
+    spin_up();
     forwardAutonomous(-20);
-    spin_up();
-    goTo(team * TILE_WIDTH * 2 - 9, TILE_WIDTH * 1, 30 * team);
+    goTo(team * (TILE_WIDTH * 2 - 9), TILE_WIDTH * 1, 30 * team);
+    forwardAutonomous(2);
     shoot_autonomous();
 
-    forwardAutonomous(-3);
+    forwardAutonomous(-10);
     turninplaceAutonomous(team * -30);
-    forwardAutonomous(-1.25 * TILE_WIDTH);
+    forwardAutonomous(-1 * TILE_WIDTH);
     climbLow();
-
-    /*
-    spin_up();
-    forwardAutonomous(23.5);
-    turninplaceAutonomous(10 * team);
-    shoot_autonomous();
-    turninplaceAutonomous(-10 * team);
-    forwardAutonomous(21);
-    unshoot();
-    forwardAutonomous(-(23.5 + 21 + 4.5));
-    turninplaceAutonomous(90 * team);
-    intake();
-    forwardAutonomous(47);
-    turninplaceAutonomous(-90 * team);
-    forwardAutonomous(23.5 + 21 + 4.5);
-    forwardAutonomous(-12);
-    turninplaceAutonomous(-90 * team);
-    forwardAutonomous(12);
-    turninplaceAutonomous((90 + 45) * team);
-    stop_intake();
-    shoot_autonomous();
-    turninplaceAutonomous((90 + 45) * team);
-    unshoot();
-    forwardAutonomous(25);
-    climb();*/
-    //shoot_autonomous();
     //robot_skills();
 }
 

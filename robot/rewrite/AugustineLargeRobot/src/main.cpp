@@ -28,7 +28,7 @@ void unshoot() {
 }
 bool autonomousActive = false;
 
-bool team = 1; //1 is red, -1 for blue
+int team = -1; //1 is red, -1 for blue
 double xPosition = 0;
 double yPosition = 0;
 double orientation = 0;
@@ -61,7 +61,7 @@ void turninplaceAutonomous(double degrees) {
     //Creates an imaginary circle that is the circle of rotation
     //that the robot would rotate in. Calculates the circumference of that
     //circle and rotates the motors that number of degrees
-    double rotations = degrees * robotWidth * team / wheelDiameter;
+    double rotations = degrees * robotWidth / wheelDiameter;
     LeftMotorOne.startRotateFor(rotations, rotationUnits::deg);
     LeftMotorTwo.startRotateFor(rotations, rotationUnits::deg);
     RightMotorOne.startRotateFor(rotations, rotationUnits::deg);
@@ -171,8 +171,8 @@ void spin_up() {
 }
 void spin_up_slow() {
   if (isShooter) {
-    FlyWheelMotorOne.spin(directionType::rev, 73, velocityUnits::pct);
-    FlyWheelMotorTwo.spin(directionType::rev, 73, velocityUnits::pct);
+    FlyWheelMotorOne.spin(directionType::rev, 77, velocityUnits::pct);
+    FlyWheelMotorTwo.spin(directionType::rev, 77, velocityUnits::pct);
   }
 }
 void spin_up(double speed) {
@@ -225,7 +225,9 @@ void maintain_flip() {
 }
 void autonomous( void ) {
     const double TILE_WIDTH = 23.75;
-    shoot_autonomous(73);
+    spin_up(77);
+    vex::task::sleep(8000);
+    shoot_autonomous(77);
     unshoot();
     forwardAutonomous(-4);
 
@@ -239,18 +241,20 @@ void autonomous( void ) {
     
     forwardAutonomous(-13);
     flip_helper(45);
+    forwardAutonomous(0.5);
     turninplaceAutonomous(90 * team);
     mid_post_autonomous();
     flip_helper(65);
-    forwardAutonomous(-48.25);//Changed from 49.25 -> 48.25
+    forwardAutonomous(-43.75);//Changed from 49.25 -> 48.25
     Controller1.Screen.print("DONE MOVING");
     lift_helper_wait(500);
     Controller1.Screen.print("DONE LIFTING");
+    spin_up(77);
     forwardAutonomous(10.25);
     unflip_autonomous();
     
     intake();
-    goTo(team * TILE_WIDTH + 4.7, -14, 31 * team);
+    goTo(team * (TILE_WIDTH + 4.7), -14, 31 * team);
     stop_intake();
     shoot_autonomous(77);
 
